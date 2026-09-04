@@ -11,12 +11,7 @@ import SwiftUI
 struct MyNawalApp: App {
     var body: some Scene {
         WindowGroup {
-            CatalagoNawal()
+            ContentView()
         }
     }
-}
-
-#Preview {
-    
-    CatalagoNawal()
 }

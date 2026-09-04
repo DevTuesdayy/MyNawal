@@ -1,21 +1,16 @@
-//
-//  ContentView.swift
-//  MyNawal
-//
-//  Created by Emanuel on 25/08/26.
-//
-
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var viewModel: PaletteStudyViewModel
+
+    init() {
+        let repository = MockPaletteStudyRepository()
+        let useCase = DefaultPaletteStudyUseCase(repository: repository)
+        _viewModel = StateObject(wrappedValue: PaletteStudyViewModel(useCase: useCase))
+    }
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+        PaletteStudyView(viewModel: viewModel)
     }
 }
 

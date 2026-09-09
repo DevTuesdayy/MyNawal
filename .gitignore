@@ -1,0 +1,9 @@
+# Archivos locales de macOS y Xcode
+.DS_Store
+xcuserdata/
+*.xcuserstate
+
+# Productos de compilación
+build/
+DerivedData/
+*.xcarchive

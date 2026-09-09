@@ -10,6 +10,8 @@ import SwiftUI
 struct CatalagoNawal: View {
     
     var body: some View {
+        // Prototipo pendiente; el catálogo activo está en PaletteCatalogView.
+        EmptyView()
         
 //        TabView {
 //            ContentView()

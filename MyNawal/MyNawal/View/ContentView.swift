@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var viewModel: PaletteStudyViewModel
-
+                    
     init() {
         let repository = MockPaletteStudyRepository()
         let useCase = DefaultPaletteStudyUseCase(repository: repository)

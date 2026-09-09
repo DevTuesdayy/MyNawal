@@ -8,7 +8,7 @@
 import Foundation
 
 protocol PaletteStudyRepository {
-func fetchContent() -> PaletteStudyContent
+    func fetchContent() -> PaletteStudyContent
 }
 
 struct MockPaletteStudyRepository: PaletteStudyRepository {

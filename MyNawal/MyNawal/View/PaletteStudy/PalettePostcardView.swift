@@ -39,7 +39,7 @@ struct PalettePostcardView: View {
                                 .font(.subheadline)
                                 .foregroundStyle(Color.mamFondo.opacity(0.82))
 
-                            LocalNawalImage(name: "Imox")
+                            ImagenNawalLocal(nombre: "nawal_01")
                                 .padding(10)
                                 .frame(width: 146, height: 146)
                                 .background(Color.white)

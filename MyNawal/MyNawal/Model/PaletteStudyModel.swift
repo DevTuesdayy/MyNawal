@@ -19,9 +19,9 @@ struct PaletteStudyContent: Hashable {
 
 struct PaletteNawalItem: Identifiable, Hashable {
     let id = UUID()
-    let name: String
-    let isFeatured: Bool
-    let symbol: String
+    let nombre: String
+    let esDestacado: Bool
+    let nombreImagen: String
 }
 
 struct PaletteNawalDetail: Hashable {

@@ -1,36 +1,24 @@
 import SwiftUI
 import UIKit
 
-struct LocalNawalImage: View {
-    let name: String
+struct ImagenNawalLocal: View {
+    let nombre: String
 
     var body: some View {
         Group {
-            if let uiImage = loadImage(named: name) {
-                Image(uiImage: uiImage)
+            if let imagen = cargarImagen(nombre: nombre) {
+                Image(uiImage: imagen)
                     .resizable()
                     .scaledToFit()
             } else {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color.mamArena.opacity(0.35))
-                    .overlay {
-                        Text(name)
-                            .font(.caption.bold())
-                            .foregroundStyle(Color.mamFondo)
-                    }
+                Image(systemName: "photo")
+                    .font(.system(size: 30, weight: .light))
+                    .foregroundStyle(Color.mamFondo.opacity(0.28))
             }
         }
     }
 
-    private func loadImage(named name: String) -> UIImage? {
-        if let image = UIImage(named: name) {
-            return image
-        }
-
-        if let image = UIImage(named: name.lowercased()) {
-            return image
-        }
-
-        return nil
+    private func cargarImagen(nombre: String) -> UIImage? {
+        UIImage(named: nombre)
     }
 }

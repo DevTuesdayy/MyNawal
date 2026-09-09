@@ -5,16 +5,13 @@ struct PaletteStudyView: View {
 
     var body: some View {
         TabView(selection: $viewModel.selectedTab) {
-            PaletteCatalogView(content: viewModel.content)
+            NavigationStack {
+                PaletteCatalogView(content: viewModel.content)
+                    .toolbar(.hidden, for: .navigationBar)
+            }
                 .tag(PaletteStudyTab.catalog)
                 .tabItem {
                     Label(PaletteStudyTab.catalog.title, systemImage: PaletteStudyTab.catalog.systemImage)
-                }
-
-            PaletteDetailView(content: viewModel.content)
-                .tag(PaletteStudyTab.detail)
-                .tabItem {
-                    Label(PaletteStudyTab.detail.title, systemImage: PaletteStudyTab.detail.systemImage)
                 }
 
             PalettePostcardView(content: viewModel.content)

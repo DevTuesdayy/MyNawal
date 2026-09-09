@@ -1,47 +1,40 @@
 import SwiftUI
 
-struct PaletteCatalogTile: View {
-    let item: PaletteNawalItem
+struct TarjetaCatalogoNawal: View {
+    let nawal: PaletteNawalItem
+    let estaSeleccionado: Bool
+    let alSeleccionar: () -> Void
 
     var body: some View {
-        VStack(spacing: 10) {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(item.isFeatured ? Color.mamJade.opacity(0.16) : Color.white.opacity(0.92))
-                .frame(height: 88)
-                .overlay {
-                    LocalNawalImage(name: item.symbol)
-                        .padding(10)
-                }
-                .overlay {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(item.isFeatured ? Color.mamJade.opacity(0.85) : Color.mamArena.opacity(0.9), lineWidth: 2)
-                        .padding(12)
-                }
-                .overlay(alignment: .topTrailing) {
-                    if item.isFeatured {
-                        Circle()
-                            .fill(Color.mamAmarillo)
-                            .frame(width: 10, height: 10)
-                            .padding(10)
-                    }
-                }
+        Button(action: alSeleccionar) {
+            VStack(spacing: 12) {
+                ImagenNawalLocal(nombre: nawal.nombreImagen)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 86)
 
-            Text(item.name)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Color.mamFondo)
+                Text(nawal.nombre)
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    .foregroundStyle(estaSeleccionado ? Color.mamBlanco : Color.mamFondo)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 156)
+            .padding(.horizontal, 8)
+            .background(estaSeleccionado ? Color.mamJade : Color.white.opacity(0.52))
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         }
-        .padding(12)
-        .background(item.isFeatured ? Color.mamBlanco : Color.white.opacity(0.82))
-        .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(item.isFeatured ? Color.mamJade.opacity(0.45) : Color.mamArena.opacity(0.75), lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .buttonStyle(.plain)
+        .accessibilityLabel("Nawal \\(nawal.nombre)")
+        .accessibilityAddTraits(estaSeleccionado ? .isSelected : [])
     }
 }
 
 #Preview {
-    PaletteCatalogTile(
-        item: PaletteNawalItem(name: "Imox", isFeatured: true, symbol: "imox")
+    TarjetaCatalogoNawal(
+        nawal: PaletteNawalItem(nombre: "Imox", esDestacado: true, nombreImagen: "nawal_01"),
+        estaSeleccionado: true,
+        alSeleccionar: {}
     )
+    .padding()
+    .background(Color.mamBlanco)
 }

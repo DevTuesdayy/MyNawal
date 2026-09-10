@@ -11,8 +11,6 @@ struct PaletteStudyContent: Hashable {
     let catalogTitle: String
     let catalogSubtitle: String
     let catalogItems: [PaletteNawalItem]
-    let selectedNawal: PaletteNawalDetail
-    let birthDateText: String
     let postcardTitle: String
     let postcardSubtitle: String
 }
@@ -22,20 +20,30 @@ struct PaletteNawalItem: Identifiable, Hashable {
     let nombre: String
     let esDestacado: Bool
     let nombreImagen: String
-}
+    let significado: String
+    let descripcion: String
+    let energia: String
 
-struct PaletteNawalDetail: Hashable {
-    let title: String
-    let subtitle: String
-    let description: String
-    let dateText: String
-    let energyText: String
-    let actionTitle: String
+    init(
+        nombre: String,
+        esDestacado: Bool,
+        nombreImagen: String,
+        significado: String = "Símbolo sagrado del Cholq’ij",
+        descripcion: String = "Una energía sagrada que acompaña tu camino dentro del Cholq’ij.",
+        energia: String = "Conexión • Equilibrio • Propósito"
+    ) {
+        self.nombre = nombre
+        self.esDestacado = esDestacado
+        self.nombreImagen = nombreImagen
+        self.significado = significado
+        self.descripcion = descripcion
+        self.energia = energia
+    }
 }
 
 enum PaletteStudyTab: CaseIterable, Identifiable {
     case catalog
-    case detail
+    case calculator
     case postcard
 
     var id: Self { self }
@@ -43,9 +51,9 @@ enum PaletteStudyTab: CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .catalog:
-            "Catalogo"
-        case .detail:
-            "Detalle"
+            "Catálogo"
+        case .calculator:
+            "Mi Nawal"
         case .postcard:
             "Postal"
         }
@@ -55,8 +63,8 @@ enum PaletteStudyTab: CaseIterable, Identifiable {
         switch self {
         case .catalog:
             "square.grid.2x2.fill"
-        case .detail:
-            "sparkles"
+        case .calculator:
+            "calendar"
         case .postcard:
             "camera.viewfinder"
         }

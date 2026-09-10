@@ -55,4 +55,28 @@ extension Color {
         green: 73 / 255,
         blue: 94 / 255
     ) // #27495E
+
+    static let mamCrema = Color(
+        red: 248 / 255,
+        green: 242 / 255,
+        blue: 226 / 255
+    ) // #F8F2E2
+
+    static let mamTarjeta = Color(
+        red: 255 / 255,
+        green: 252 / 255,
+        blue: 244 / 255
+    ) // #FFFCF4
+
+    static let mamOro = Color(
+        red: 196 / 255,
+        green: 139 / 255,
+        blue: 35 / 255
+    ) // #C48B23
+
+    static let mamJadeClaro = Color(
+        red: 162 / 255,
+        green: 190 / 255,
+        blue: 157 / 255
+    ) // #A2BE9D
 }

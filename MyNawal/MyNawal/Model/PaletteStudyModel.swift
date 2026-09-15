@@ -22,6 +22,18 @@ struct PaletteNawalItem: Identifiable, Hashable {
     let nombre: String
     let esDestacado: Bool
     let nombreImagen: String
+    let informacion: NawalInformacion
+}
+
+struct NawalInformacion: Hashable {
+    let significado: String
+    let descripcion: String
+    let energia: String
+    let animal: String
+    let elemento: String
+    let fuente: URL
+    var notaAnimal: String? = nil
+    var notaNombre: String? = nil
 }
 
 struct PaletteNawalDetail: Hashable {
@@ -37,6 +49,7 @@ enum PaletteStudyTab: CaseIterable, Identifiable {
     case catalog
     case detail
     case postcard
+    case calculator
 
     var id: Self { self }
 
@@ -48,6 +61,8 @@ enum PaletteStudyTab: CaseIterable, Identifiable {
             "Detalle"
         case .postcard:
             "Postal"
+        case .calculator:
+            "Calcular"
         }
     }
 
@@ -59,6 +74,8 @@ enum PaletteStudyTab: CaseIterable, Identifiable {
             "sparkles"
         case .postcard:
             "camera.viewfinder"
+        case .calculator:
+            "calendar"
         }
     }
 }

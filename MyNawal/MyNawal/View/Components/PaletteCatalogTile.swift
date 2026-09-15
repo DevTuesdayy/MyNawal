@@ -5,33 +5,53 @@ struct TarjetaCatalogoNawal: View {
     let estaSeleccionado: Bool
     let alSeleccionar: () -> Void
 
+    private let contorno = RoundedRectangle(cornerRadius: 18, style: .continuous)
+
     var body: some View {
         Button(action: alSeleccionar) {
             VStack(spacing: 12) {
                 ImagenNawalLocal(nombre: nawal.nombreImagen)
+                    .aspectRatio(1, contentMode: .fit)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 86)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
                 Text(nawal.nombre)
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    .font(.system(.callout, design: .rounded, weight: .semibold))
                     .foregroundStyle(estaSeleccionado ? Color.mamBlanco : Color.mamFondo)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.7)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 156)
-            .padding(.horizontal, 8)
-            .background(estaSeleccionado ? Color.mamJade : Color.white.opacity(0.52))
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .padding(8)
+            .padding(.bottom, 8)
+            .background {
+                contorno
+                    .fill(estaSeleccionado ? Color.mamJade : Color.mamBlanco)
+                    .overlay {
+                        if !estaSeleccionado {
+                            contorno.fill(Color.white.opacity(0.38))
+                        }
+                    }
+            }
+            .clipShape(contorno)
+            .overlay {
+                contorno.strokeBorder(
+                    estaSeleccionado ? Color.mamArena : Color.mamArena.opacity(0.65),
+                    lineWidth: 1
+                )
+            }
+            .shadow(color: Color.mamFondo.opacity(0.09), radius: 2, x: 0, y: 2)
+            .contentShape(contorno)
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Nawal \\(nawal.nombre)")
+        .buttonStyle(NawalPressStyle())
+        .accessibilityLabel("Nawal \(nawal.nombre)")
         .accessibilityAddTraits(estaSeleccionado ? .isSelected : [])
     }
 }
 
 #Preview {
     TarjetaCatalogoNawal(
-        nawal: PaletteNawalItem(nombre: "Imox", esDestacado: true, nombreImagen: "nawal_01"),
+        nawal: NawalCatalogo.items[0],
         estaSeleccionado: true,
         alSeleccionar: {}
     )

@@ -2,94 +2,92 @@ import SwiftUI
 
 struct DetalleNawalView: View {
     let nawal: PaletteNawalItem
-    let contenido: PaletteStudyContent
 
     @Environment(\.dismiss) private var cerrarVista
-
-    private var esImox: Bool {
-        nawal.nombre == "Imox"
-    }
-
-    private var subtitulo: String {
-        esImox ? "(Cocodrilo / Agua)" : "Símbolo sagrado"
-    }
-
-    private var descripcion: String {
-        if esImox {
-            return contenido.selectedNawal.description
-        }
-
-        return "El nawal \(nawal.nombre) acompaña tu camino y representa una energía única dentro de la cosmovisión maya."
-    }
-
-    private var energia: String {
-        esImox ? contenido.selectedNawal.energyText : "Conexión • Equilibrio • Propósito"
-    }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 24) {
                 encabezado
 
-                VStack(spacing: 6) {
-                    Text("Tu Nawal es")
-                        .font(.system(size: 30, weight: .bold, design: .rounded))
+                VStack(spacing: 12) {
+                    Text("Conoce el nawal")
+                        .font(.system(.title, design: .rounded, weight: .bold))
                         .foregroundStyle(Color.mamFondo)
+                        .accessibilityAddTraits(.isHeader)
 
                     Text(nawal.nombre)
                         .font(.system(size: 54, weight: .bold, design: .rounded))
                         .foregroundStyle(Color.mamJade)
 
-                    Text(subtitulo)
+                    Text(nawal.informacion.significado)
                         .font(.system(size: 22, weight: .medium, design: .rounded))
+                        .multilineTextAlignment(.center)
                         .foregroundStyle(Color.mamFondo)
+
+                    SeparadorHilos()
+                        .padding(.top, 4)
                 }
+                .multilineTextAlignment(.center)
 
                 ImagenNawalLocal(nombre: nawal.nombreImagen)
-                    .frame(width: 250, height: 250)
+                    .aspectRatio(1, contentMode: .fit)
+                    .frame(maxWidth: 320)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .padding(8)
+                    .superficieEstuco()
+                    .accessibilityLabel("Imagen de \(nawal.nombre)")
 
-                HStack(spacing: 14) {
-                    ForEach(0..<5, id: \.self) { _ in
-                        Circle()
-                            .fill(Color.mamJade)
-                            .frame(width: 30, height: 30)
-                    }
-                }
-
-                Text(descripcion)
+                Text(nawal.informacion.descripcion)
                     .font(.system(size: 19, weight: .regular, design: .rounded))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Color.mamFondo)
                     .lineSpacing(5)
                     .frame(maxWidth: 360)
+                    .padding(20)
+                    .superficieEstuco()
+                    .nawalEntrance()
 
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("Fecha correspondiente")
+                    Text("Animal o representación")
                         .font(.system(size: 17, weight: .bold, design: .rounded))
                         .foregroundStyle(Color.mamFondo)
 
-                    Text(contenido.birthDateText)
+                    Text(nawal.informacion.animal)
                         .font(.system(size: 18, weight: .regular, design: .rounded))
                         .foregroundStyle(Color.mamFondo)
 
-                    Text("Energía")
+                    Divider()
+
+                    Text("Elemento")
                         .font(.system(size: 17, weight: .bold, design: .rounded))
                         .foregroundStyle(Color.mamFondo)
-                        .padding(.top, 8)
 
-                    Text(energia)
+                    Text(nawal.informacion.elemento)
+                        .font(.system(size: 18, weight: .regular, design: .rounded))
+                        .foregroundStyle(Color.mamFondo)
+
+                    Divider()
+
+                    Text("Asociaciones simbólicas")
+                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .foregroundStyle(Color.mamFondo)
+
+                    Text(nawal.informacion.energia)
                         .font(.system(size: 18, weight: .regular, design: .rounded))
                         .foregroundStyle(Color.mamFondo)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(24)
-                .background(Color.mamArena.opacity(0.22))
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .superficieEstuco()
+
             }
+            .frame(maxWidth: 520)
             .padding(.horizontal, 24)
-            .padding(.vertical, 20)
+            .padding(.vertical, 24)
+            .frame(maxWidth: .infinity)
         }
-        .background(Color.mamBlanco.ignoresSafeArea())
+        .background(FondoEstuco().ignoresSafeArea())
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
     }
@@ -103,6 +101,7 @@ struct DetalleNawalView: View {
                     .frame(width: 44, height: 44)
             }
             .accessibilityLabel("Regresar al catálogo")
+            .buttonStyle(NawalPressStyle())
 
             Spacer()
         }
@@ -112,12 +111,7 @@ struct DetalleNawalView: View {
 #Preview {
     NavigationStack {
         DetalleNawalView(
-            nawal: PaletteNawalItem(
-                nombre: "Imox",
-                esDestacado: true,
-                nombreImagen: "nawal_01"
-            ),
-            contenido: MockPaletteStudyRepository().fetchContent()
+            nawal: NawalCatalogo.items[0]
         )
     }
 }

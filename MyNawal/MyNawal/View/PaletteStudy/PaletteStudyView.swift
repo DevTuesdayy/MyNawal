@@ -14,6 +14,14 @@ struct PaletteStudyView: View {
                     Label(PaletteStudyTab.catalog.title, systemImage: PaletteStudyTab.catalog.systemImage)
                 }
 
+            NavigationStack {
+                CalculadorView()
+            }
+                .tag(PaletteStudyTab.calculator)
+                .tabItem {
+                    Label(PaletteStudyTab.calculator.title, systemImage: PaletteStudyTab.calculator.systemImage)
+                }
+
             PalettePostcardView(content: viewModel.content)
                 .tag(PaletteStudyTab.postcard)
                 .tabItem {

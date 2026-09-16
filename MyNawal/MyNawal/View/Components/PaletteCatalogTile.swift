@@ -18,8 +18,8 @@ struct TarjetaCatalogoNawal: View {
                 Text(nawal.nombre)
                     .font(.system(.callout, design: .rounded, weight: .semibold))
                     .foregroundStyle(estaSeleccionado ? Color.mamBlanco : Color.mamFondo)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity)
             .padding(8)
@@ -44,7 +44,9 @@ struct TarjetaCatalogoNawal: View {
             .contentShape(contorno)
         }
         .buttonStyle(NawalPressStyle())
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("Nawal \(nawal.nombre)")
+        .accessibilityHint("Abre la información del nawal")
         .accessibilityAddTraits(estaSeleccionado ? .isSelected : [])
     }
 }

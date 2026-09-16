@@ -4,6 +4,9 @@ struct DetalleNawalView: View {
     let nawal: PaletteNawalItem
 
     @Environment(\.dismiss) private var cerrarVista
+    @ScaledMetric(relativeTo: .largeTitle) private var tamanoNombre = 54.0
+    @ScaledMetric(relativeTo: .body) private var tamanoDescripcion = 19.0
+    @ScaledMetric(relativeTo: .body) private var tamanoInformacion = 18.0
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -17,11 +20,11 @@ struct DetalleNawalView: View {
                         .accessibilityAddTraits(.isHeader)
 
                     Text(nawal.nombre)
-                        .font(.system(size: 54, weight: .bold, design: .rounded))
+                        .font(.system(size: tamanoNombre, weight: .bold, design: .rounded))
                         .foregroundStyle(Color.mamJade)
 
                     Text(nawal.informacion.significado)
-                        .font(.system(size: 22, weight: .medium, design: .rounded))
+                        .font(.system(.title2, design: .rounded, weight: .medium))
                         .multilineTextAlignment(.center)
                         .foregroundStyle(Color.mamFondo)
 
@@ -39,7 +42,7 @@ struct DetalleNawalView: View {
                     .accessibilityLabel("Imagen de \(nawal.nombre)")
 
                 Text(nawal.informacion.descripcion)
-                    .font(.system(size: 19, weight: .regular, design: .rounded))
+                    .font(.system(size: tamanoDescripcion, weight: .regular, design: .rounded))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Color.mamFondo)
                     .lineSpacing(5)
@@ -50,31 +53,31 @@ struct DetalleNawalView: View {
 
                 VStack(alignment: .leading, spacing: 14) {
                     Text("Animal o representación")
-                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .font(.system(.headline, design: .rounded))
                         .foregroundStyle(Color.mamFondo)
 
                     Text(nawal.informacion.animal)
-                        .font(.system(size: 18, weight: .regular, design: .rounded))
+                        .font(.system(size: tamanoInformacion, weight: .regular, design: .rounded))
                         .foregroundStyle(Color.mamFondo)
 
                     Divider()
 
                     Text("Elemento")
-                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .font(.system(.headline, design: .rounded))
                         .foregroundStyle(Color.mamFondo)
 
                     Text(nawal.informacion.elemento)
-                        .font(.system(size: 18, weight: .regular, design: .rounded))
+                        .font(.system(size: tamanoInformacion, weight: .regular, design: .rounded))
                         .foregroundStyle(Color.mamFondo)
 
                     Divider()
 
                     Text("Asociaciones simbólicas")
-                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .font(.system(.headline, design: .rounded))
                         .foregroundStyle(Color.mamFondo)
 
                     Text(nawal.informacion.energia)
-                        .font(.system(size: 18, weight: .regular, design: .rounded))
+                        .font(.system(size: tamanoInformacion, weight: .regular, design: .rounded))
                         .foregroundStyle(Color.mamFondo)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)

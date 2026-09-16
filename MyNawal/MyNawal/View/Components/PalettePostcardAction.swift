@@ -18,5 +18,7 @@ struct PalettePostcardAction: View {
                     .strokeBorder(Color.mamArena, lineWidth: 1)
             }
             .shadow(color: Color.mamFondo.opacity(0.09), radius: 2, x: 0, y: 2)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("\(title): función pendiente de implementación")
     }
 }

@@ -7,11 +7,12 @@ struct PaletteCatalogView: View {
     @Namespace private var transicionNawal
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private let columnas = [
-        GridItem(.flexible(), spacing: 16),
-        GridItem(.flexible(), spacing: 16),
-        GridItem(.flexible(), spacing: 16)
-    ]
+    @Environment(\.dynamicTypeSize) private var textSize
+
+    private var columnas: [GridItem] {
+        let cantidad = textSize.isAccessibilitySize ? 1 : (textSize >= .xxLarge ? 2 : 3)
+        return Array(repeating: GridItem(.flexible(), spacing: 16), count: cantidad)
+    }
 
     var body: some View {
         ScrollView(showsIndicators: false) {

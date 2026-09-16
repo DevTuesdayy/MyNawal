@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PalettePostcardView: View {
   let content: PaletteStudyContent
+  @Environment(\.dynamicTypeSize) private var textSize
 
   var body: some View {
     ScrollView(showsIndicators: false) {
@@ -28,7 +29,7 @@ struct PalettePostcardView: View {
             .foregroundStyle(Color.mamFondo)
 
           Text(content.selectedNawal.subtitle)
-            .font(.system(size: 34, weight: .black, design: .rounded))
+            .font(.system(.largeTitle, design: .rounded, weight: .black))
             .foregroundStyle(Color.mamFondo)
 
           if let nawal = content.catalogItems.first(where: {
@@ -39,8 +40,10 @@ struct PalettePostcardView: View {
               .foregroundStyle(Color.mamFondo)
             Text("Animal o representación: \(nawal.informacion.animal)")
               .font(.footnote)
+              .foregroundStyle(Color.mamFondo)
             Text("Elemento: \(nawal.informacion.elemento)")
               .font(.footnote)
+              .foregroundStyle(Color.mamFondo)
             ImagenNawalLocal(nombre: nawal.nombreImagen)
               .aspectRatio(1, contentMode: .fit)
               .frame(maxWidth: 200)
@@ -66,7 +69,7 @@ struct PalettePostcardView: View {
         .multilineTextAlignment(.center)
         .superficieEstuco()
 
-        HStack(spacing: 12) {
+        accionesLayout {
           PalettePostcardAction(title: "Guardar", icon: "arrow.down", background: .mamJade)
           PalettePostcardAction(
             title: "Compartir", icon: "square.and.arrow.up", background: .mamFondo)
@@ -79,5 +82,11 @@ struct PalettePostcardView: View {
       .nawalEntrance()
     }
     .background(FondoEstuco().ignoresSafeArea())
+  }
+
+  private var accionesLayout: AnyLayout {
+    textSize.isAccessibilitySize
+      ? AnyLayout(VStackLayout(spacing: 12))
+      : AnyLayout(HStackLayout(spacing: 12))
   }
 }

@@ -15,7 +15,11 @@ struct PaletteStudyView: View {
                 }
 
             NavigationStack {
-                CalculadorView()
+                CalculadorView(
+                    result: viewModel.calculationResult,
+                    errorMessage: viewModel.calculationErrorMessage,
+                    onCalculate: viewModel.calculateNawal
+                )
             }
                 .tag(PaletteStudyTab.calculator)
                 .tabItem {
@@ -28,10 +32,10 @@ struct PaletteStudyView: View {
                     Label(PaletteStudyTab.postcard.title, systemImage: PaletteStudyTab.postcard.systemImage)
                 }
         }
-        .tint(Color.mamAmarillo)
-        .toolbarBackground(Color.mamFondo, for: .tabBar)
+        .tint(Color.mamJade)
+        .toolbarBackground(Color.mamBlanco, for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)
-        .toolbarColorScheme(.dark, for: .tabBar)
+        .toolbarColorScheme(.light, for: .tabBar)
     }
 }
 

@@ -13,6 +13,9 @@ final class PaletteStudyViewModel: ObservableObject {
     @Published private(set) var content: PaletteStudyContent
     @Published private(set) var calculationResult: NawalCalculationResult?
     @Published private(set) var calculationErrorMessage: String?
+    @Published private(set) var postcardDraft: NawalPostcardDraft?
+
+    private var calculatedDraft: NawalPostcardDraft?
 
     private let useCase: PaletteStudyUseCase
     private let nawalCalculator: NawalCalculator
@@ -34,6 +37,12 @@ final class PaletteStudyViewModel: ObservableObject {
         selectedTab = tab
     }
 
+    func createPostcard() {
+        guard let calculatedDraft else { return }
+        postcardDraft = calculatedDraft
+        selectedTab = .postcard
+    }
+
     func calculateNawal(for date: Date) {
         do {
             calculationResult = try nawalCalculator.calculate(
@@ -41,8 +50,17 @@ final class PaletteStudyViewModel: ObservableObject {
                 nawales: content.catalogItems
             )
             calculationErrorMessage = nil
+            if let calculationResult {
+                calculatedDraft = NawalPostcardDraft(
+                    result: calculationResult,
+                    birthDateText: date.formatted(
+                        .dateTime.day().month(.wide).year().locale(Locale(identifier: "es_MX"))
+                    )
+                )
+            }
         } catch {
             calculationResult = nil
+            calculatedDraft = nil
             calculationErrorMessage = error.localizedDescription
         }
     }

@@ -4,6 +4,7 @@ struct CalculadorView: View {
     let result: NawalCalculationResult?
     let errorMessage: String?
     let onCalculate: (Date) -> Void
+    let onCreatePostcard: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selectDate = Date()
@@ -135,11 +136,7 @@ struct CalculadorView: View {
                         ProgressView()
                             .tint(Color.mamBlanco)
                             .accessibilityHidden(true)
-                    } else {
-                        Image(systemName: "sparkles")
-                            .accessibilityHidden(true)
                     }
-
                     Text(isCalculating ? "Descubriendo tu Nawal…" : "Calcular mi Nawal")
                         .font(.system(size: tamanoControl, weight: .semibold, design: .rounded))
                 }
@@ -165,6 +162,24 @@ struct CalculadorView: View {
                         insertion: .scale(scale: 0.94).combined(with: .opacity),
                         removal: .opacity
                     ))
+
+                Button(action: onCreatePostcard) {
+                    Label("Crear mi postal", systemImage: "camera.on.rectangle")
+                        .font(.system(.headline, design: .rounded))
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(Color.mamBlanco)
+                        .padding(18)
+                        .frame(maxWidth: .infinity, minHeight: 54)
+                        .background(Color.mamJade, in: RoundedRectangle(cornerRadius: 18))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 18)
+                                .strokeBorder(Color.mamArena, lineWidth: 1)
+                        }
+                }
+                .buttonStyle(NawalPressStyle())
+                .accessibilityHint("Abre Postal con tu nawal, energía y fecha calculados")
+                .padding(.top, 18)
+                .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
             } else if let errorMessage, hasCalculatedSelectedDate, revealResult {
                 Text(errorMessage)
                     .font(.footnote)
@@ -298,5 +313,5 @@ private struct DatoNawalCalculado: View {
 }
 
 #Preview {
-    CalculadorView(result: nil, errorMessage: nil, onCalculate: { _ in })
+    CalculadorView(result: nil, errorMessage: nil, onCalculate: { _ in }, onCreatePostcard: {})
 }

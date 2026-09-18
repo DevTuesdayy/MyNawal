@@ -18,7 +18,8 @@ struct PaletteStudyView: View {
                 CalculadorView(
                     result: viewModel.calculationResult,
                     errorMessage: viewModel.calculationErrorMessage,
-                    onCalculate: viewModel.calculateNawal
+                    onCalculate: viewModel.calculateNawal,
+                    onCreatePostcard: viewModel.createPostcard
                 )
             }
                 .tag(PaletteStudyTab.calculator)
@@ -26,7 +27,9 @@ struct PaletteStudyView: View {
                     Label(PaletteStudyTab.calculator.title, systemImage: PaletteStudyTab.calculator.systemImage)
                 }
 
-            PalettePostcardView(content: viewModel.content)
+            PalettePostcardView(draft: viewModel.postcardDraft) {
+                viewModel.selectTab(.calculator)
+            }
                 .tag(PaletteStudyTab.postcard)
                 .tabItem {
                     Label(PaletteStudyTab.postcard.title, systemImage: PaletteStudyTab.postcard.systemImage)

@@ -41,16 +41,6 @@ struct DetalleNawalView: View {
                     .superficieEstuco()
                     .accessibilityLabel("Imagen de \(nawal.nombre)")
 
-                Text(nawal.informacion.descripcion)
-                    .font(.system(size: tamanoDescripcion, weight: .regular, design: .rounded))
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(Color.mamFondo)
-                    .lineSpacing(5)
-                    .frame(maxWidth: 360)
-                    .padding(20)
-                    .superficieEstuco()
-                    .nawalEntrance()
-
                 VStack(alignment: .leading, spacing: 14) {
                     Text("Animal o representación")
                         .font(.system(.headline, design: .rounded))
@@ -83,6 +73,16 @@ struct DetalleNawalView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(24)
                 .superficieEstuco()
+                
+                Text(nawal.informacion.descripcion)
+                    .font(.system(size: tamanoDescripcion, weight: .regular, design: .rounded))
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(Color.mamFondo)
+                    .lineSpacing(5)
+                    .frame(maxWidth: .infinity)
+                    .padding(20)
+                    .superficieEstuco()
+                    .nawalEntrance()
 
             }
             .frame(maxWidth: 520)

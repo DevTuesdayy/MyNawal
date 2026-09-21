@@ -32,9 +32,10 @@ struct PaletteCatalogView: View {
                 }
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
+                .nawalEntrance()
 
                 LazyVGrid(columns: columnas, spacing: 16) {
-                    ForEach(content.catalogItems) { nawal in
+                    ForEach(Array(content.catalogItems.enumerated()), id: \.element.id) { index, nawal in
                         TarjetaCatalogoNawal(
                             nawal: nawal,
                             estaSeleccionado: identificadorSeleccionado == nawal.id
@@ -43,12 +44,12 @@ struct PaletteCatalogView: View {
                             nawalSeleccionado = nawal
                         }
                         .matchedTransitionSource(id: nawal.id, in: transicionNawal)
+                        .nawalEntrance(delay: index < 6 ? Double(index) * 0.035 : 0)
                     }
                 }
             }
             .padding(.horizontal, 24)
             .padding(.vertical, 24)
-            .nawalEntrance()
         }
         .background(
             FondoEstuco()

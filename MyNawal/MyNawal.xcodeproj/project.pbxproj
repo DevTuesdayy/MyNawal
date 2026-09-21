@@ -370,10 +370,12 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"MyNawal/Preview Content\"";
 				DEVELOPMENT_TEAM = DSSDFF32N2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "La cámara se utiliza para tomar tu selfie y crear tu postal Nawal.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Fotos se utiliza para guardar tu postal Nawal en tu biblioteca.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -403,10 +405,12 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"MyNawal/Preview Content\"";
 				DEVELOPMENT_TEAM = DSSDFF32N2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "La cámara se utiliza para tomar tu selfie y crear tu postal Nawal.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Fotos se utiliza para guardar tu postal Nawal en tu biblioteca.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

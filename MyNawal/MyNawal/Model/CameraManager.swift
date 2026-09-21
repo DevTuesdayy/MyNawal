@@ -36,7 +36,7 @@ final class CameraManager: NSObject, ObservableObject, nonisolated AVCapturePhot
     private var isConfigured = false
 
     func prepare() {
-        guard state == .idle || state == .denied || state == .restricted else {
+        guard state == .idle || state == .denied || state == .restricted || isRecoverableFailure else {
             return
         }
 
@@ -88,6 +88,7 @@ final class CameraManager: NSObject, ObservableObject, nonisolated AVCapturePhot
             return
         }
 
+        let rotationAngle = Self.currentInterfaceOrientation.captureVideoRotationAngle
         updateState(.capturing)
 
         sessionQueue.async { [weak self] in
@@ -102,6 +103,9 @@ final class CameraManager: NSObject, ObservableObject, nonisolated AVCapturePhot
             if connection.isVideoMirroringSupported {
                 connection.automaticallyAdjustsVideoMirroring = false
                 connection.isVideoMirrored = true
+            }
+            if connection.isVideoRotationAngleSupported(rotationAngle) {
+                connection.videoRotationAngle = rotationAngle
             }
 
             let settings = AVCapturePhotoSettings()
@@ -194,9 +198,40 @@ final class CameraManager: NSObject, ObservableObject, nonisolated AVCapturePhot
             ?? AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)
     }
 
+    private var isRecoverableFailure: Bool {
+        if case .failed = state {
+            return true
+        }
+        return false
+    }
+
+    private static var currentInterfaceOrientation: UIInterfaceOrientation {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first(where: { $0.activationState == .foregroundActive })?
+            .effectiveGeometry.interfaceOrientation ?? .portrait
+    }
+
     private func updateState(_ newState: CameraState) {
         DispatchQueue.main.async { [weak self] in
             self?.state = newState
+        }
+    }
+}
+
+extension UIInterfaceOrientation {
+    var captureVideoRotationAngle: CGFloat {
+        switch self {
+        case .portrait:
+            90
+        case .portraitUpsideDown:
+            270
+        case .landscapeLeft:
+            0
+        case .landscapeRight:
+            180
+        default:
+            90
         }
     }
 }

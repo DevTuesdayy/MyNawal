@@ -158,7 +158,7 @@ struct CalculadorView: View {
             if let result, hasCalculatedSelectedDate, revealResult {
                 ResultadoNawalCalculado(result: result)
                     .padding(.top, 24)
-                    .transition(.asymmetric(
+                    .transition(reduceMotion ? .opacity : .asymmetric(
                         insertion: .scale(scale: 0.94).combined(with: .opacity),
                         removal: .opacity
                     ))
@@ -214,11 +214,13 @@ private struct ResultadoNawalCalculado: View {
                 .foregroundStyle(Color.mamFondo)
 
             ZStack {
-                Circle()
-                    .stroke(Color.mamArena.opacity(0.65), lineWidth: 2)
-                    .frame(width: 172, height: 172)
-                    .scaleEffect(appeared ? 1.18 : 0.72)
-                    .opacity(appeared ? 0 : 0.8)
+                if !reduceMotion {
+                    Circle()
+                        .stroke(Color.mamArena.opacity(0.65), lineWidth: 2)
+                        .frame(width: 172, height: 172)
+                        .scaleEffect(appeared ? 1.18 : 0.72)
+                        .opacity(appeared ? 0 : 0.8)
+                }
 
                 ImagenNawalLocal(nombre: result.nawal.nombreImagen)
                     .aspectRatio(1, contentMode: .fit)

@@ -4,6 +4,7 @@ import UIKit
 struct NawalPostcardCanvas: View {
     let draft: NawalPostcardDraft
     let selfieImage: UIImage
+    var appearance = PostcardAppearance()
 
     var body: some View {
         GeometryReader { proxy in
@@ -11,17 +12,7 @@ struct NawalPostcardCanvas: View {
             let nawal = draft.result.nawal
 
             ZStack {
-                FondoEstuco()
-
-                LinearGradient(
-                    colors: [
-                        Color.mamAmarillo.opacity(0.13),
-                        Color.clear,
-                        Color.mamJade.opacity(0.12)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+                PostcardBackground(design: appearance.design)
 
                 VStack(spacing: 8 * unit) {
                     Text("MI NAWAL ES")
@@ -77,13 +68,7 @@ struct NawalPostcardCanvas: View {
             }
             .clipShape(RoundedRectangle(cornerRadius: 24 * unit, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 24 * unit, style: .continuous)
-                    .strokeBorder(Color.mamFondo, lineWidth: 3 * unit)
-            }
-            .overlay {
-                RoundedRectangle(cornerRadius: 18 * unit, style: .continuous)
-                    .strokeBorder(Color.mamAmarillo.opacity(0.9), lineWidth: 1.5 * unit)
-                    .padding(7 * unit)
+                PostcardFrame(appearance: appearance, unit: unit)
             }
         }
         .aspectRatio(4 / 5, contentMode: .fit)

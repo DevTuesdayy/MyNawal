@@ -29,4 +29,18 @@ final class CameraPreviewView: UIView {
         }
         return layer
     }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        guard let orientation = window?.windowScene?.effectiveGeometry.interfaceOrientation,
+              let connection = previewLayer.connection else {
+            return
+        }
+
+        let rotationAngle = orientation.captureVideoRotationAngle
+        if connection.isVideoRotationAngleSupported(rotationAngle) {
+            connection.videoRotationAngle = rotationAngle
+        }
+    }
 }

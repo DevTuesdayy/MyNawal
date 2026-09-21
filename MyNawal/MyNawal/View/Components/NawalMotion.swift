@@ -15,6 +15,7 @@ struct NawalPressStyle: ButtonStyle {
 }
 
 private struct NawalEntrance: ViewModifier {
+    var delay: Double
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var appeared = false
 
@@ -25,7 +26,7 @@ private struct NawalEntrance: ViewModifier {
             .onAppear {
                 // Una sola entrada por instancia; regresar no reinicia la animación.
                 guard !appeared else { return }
-                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.28)) {
+                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.28).delay(delay)) {
                     appeared = true
                 }
             }
@@ -33,7 +34,7 @@ private struct NawalEntrance: ViewModifier {
 }
 
 extension View {
-    func nawalEntrance() -> some View {
-        modifier(NawalEntrance())
+    func nawalEntrance(delay: Double = 0) -> some View {
+        modifier(NawalEntrance(delay: min(max(delay, 0), 0.2)))
     }
 }

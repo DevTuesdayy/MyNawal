@@ -7,10 +7,12 @@ struct NawalSelfieView: View {
 
     @StateObject private var camera = CameraManager()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @Environment(\.scenePhase) private var scenePhase
     @State private var flashOpacity = 0.0
+    @State private var simulatorCapturedImage: UIImage?
 
     var body: some View {
         NavigationStack {
@@ -65,7 +67,7 @@ struct NawalSelfieView: View {
     private var cameraSurface: some View {
         ZStack(alignment: .bottom) {
             Group {
-                if let image = camera.capturedImage {
+                if let image = capturedImage {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFill()
@@ -126,25 +128,39 @@ struct NawalSelfieView: View {
                 showsProgress: true
             )
         case .denied, .restricted:
-            statusView(
-                icon: "camera.fill.badge.ellipsis",
-                title: "Permiso de cámara necesario",
-                message: "Activa el acceso a la cámara para crear tu selfie Nawal.",
-                actionTitle: "Abrir Configuración",
-                action: openSettings
-            )
+            if isSimulatorBuild {
+                simulatorCameraPreview
+            } else {
+                statusView(
+                    icon: "camera.fill.badge.ellipsis",
+                    title: "Permiso de cámara necesario",
+                    message: "Activa el acceso a la cámara para crear tu selfie Nawal.",
+                    actionTitle: "Abrir Configuración",
+                    action: openSettings
+                )
+            }
         case .unavailable:
-            statusView(
-                icon: "camera.slash",
-                title: "Cámara no disponible",
-                message: "Prueba esta función en un iPhone con cámara frontal."
-            )
+            if isSimulatorBuild {
+                simulatorCameraPreview
+            } else {
+                statusView(
+                    icon: "camera.slash",
+                    title: "Cámara no disponible",
+                    message: "No encontramos una cámara frontal disponible."
+                )
+            }
         case .failed(let message):
-            statusView(
-                icon: "exclamationmark.triangle",
-                title: "No pudimos abrir la cámara",
-                message: message
-            )
+            if isSimulatorBuild {
+                simulatorCameraPreview
+            } else {
+                statusView(
+                    icon: "exclamationmark.triangle",
+                    title: "No pudimos abrir la cámara",
+                    message: message,
+                    actionTitle: "Reintentar",
+                    action: camera.prepare
+                )
+            }
         case .idle:
             statusView(
                 icon: "camera.aperture",
@@ -187,13 +203,19 @@ struct NawalSelfieView: View {
 
     @ViewBuilder
     private var controls: some View {
-        if let image = camera.capturedImage {
-            HStack(spacing: 12) {
+        if let image = capturedImage {
+            photoControlsLayout {
                 Button {
                     withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
-                        camera.clearCapturedImage()
+                        if simulatorCapturedImage != nil {
+                            simulatorCapturedImage = nil
+                        } else {
+                            camera.clearCapturedImage()
+                        }
                     }
-                    camera.startSession()
+                    if simulatorCapturedImage == nil {
+                        camera.startSession()
+                    }
                 } label: {
                     Label("Repetir", systemImage: "arrow.counterclockwise")
                         .frame(maxWidth: .infinity, minHeight: 52)
@@ -226,11 +248,33 @@ struct NawalSelfieView: View {
                 .frame(maxWidth: .infinity, minHeight: 82)
             }
             .buttonStyle(NawalPressStyle())
-            .disabled(!camera.state.canCapture)
-            .opacity(camera.state.canCapture ? 1 : 0.45)
+            .disabled(!canTakePhoto)
+            .opacity(canTakePhoto ? 1 : 0.45)
             .accessibilityLabel("Tomar selfie")
             .accessibilityHint("Captura una fotografía con la cámara frontal")
         }
+    }
+
+    private var photoControlsLayout: AnyLayout {
+        dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: 12))
+            : AnyLayout(HStackLayout(spacing: 12))
+    }
+
+    private var simulatorCameraPreview: some View {
+        Image("SelfieDemo")
+            .resizable()
+            .scaledToFill()
+            .overlay(alignment: .topLeading) {
+                Label("Demostración", systemImage: "iphone.gen3")
+                    .font(.system(.caption, design: .rounded, weight: .semibold))
+                    .foregroundStyle(Color.mamBlanco)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 7)
+                    .background(.black.opacity(0.58), in: Capsule())
+                    .padding(16)
+            }
+            .accessibilityLabel("Selfie de ejemplo para el simulador")
     }
 
     private func statusView(
@@ -270,18 +314,63 @@ struct NawalSelfieView: View {
     }
 
     private func takePhoto() {
-        guard camera.state.canCapture else { return }
+        guard canTakePhoto else { return }
 
-        if reduceMotion {
-            flashOpacity = 0
-        } else {
+        if !reduceMotion {
             flashOpacity = 0.82
             withAnimation(.easeOut(duration: 0.24)) {
                 flashOpacity = 0
             }
         }
 
-        camera.capturePhoto()
+        if camera.state.canCapture {
+            camera.capturePhoto()
+        } else {
+            simulatePhotoCapture()
+        }
+    }
+
+    private var capturedImage: UIImage? {
+        camera.capturedImage ?? simulatorCapturedImage
+    }
+
+    private var canTakePhoto: Bool {
+        camera.state.canCapture || (isSimulatorDemoActive && simulatorDemoImage != nil)
+    }
+
+    private var isSimulatorDemoActive: Bool {
+        guard isSimulatorBuild else { return false }
+
+        switch camera.state {
+        case .denied, .restricted, .unavailable, .failed:
+            return true
+        default:
+            return false
+        }
+    }
+
+    private var simulatorDemoImage: UIImage? {
+        guard isSimulatorBuild else { return nil }
+        return UIImage(named: "SelfieDemo")
+    }
+
+    private var isSimulatorBuild: Bool {
+#if targetEnvironment(simulator)
+        true
+#else
+        false
+#endif
+    }
+
+    private func simulatePhotoCapture() {
+        guard let demoImage = simulatorDemoImage else { return }
+
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(180))
+            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.22)) {
+                simulatorCapturedImage = demoImage
+            }
+        }
     }
 
     private func openSettings() {

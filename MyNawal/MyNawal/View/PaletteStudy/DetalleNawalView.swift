@@ -73,6 +73,7 @@ struct DetalleNawalView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(24)
                 .superficieEstuco()
+                .nawalEntrance(delay: 0.08)
                 
                 Text(nawal.informacion.descripcion)
                     .font(.system(size: tamanoDescripcion, weight: .regular, design: .rounded))

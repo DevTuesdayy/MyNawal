@@ -5,8 +5,18 @@ struct PalettePostcardView: View {
     let onCalculate: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.openURL) private var openURL
     @State private var isShowingSelfie = false
     @State private var selfieImage: UIImage?
+    @State private var editorSection: PostcardEditorSection = .design
+    @State private var appearance = PostcardAppearance()
+    @State private var renderedPostcard: RenderedPostcard?
+    @State private var isSavingPostcard = false
+    @State private var didSavePostcard = false
+    @State private var exportErrorMessage: String?
+    @State private var shouldOfferSettings = false
+    @State private var postcardRenderTask: Task<Void, Never>?
 
     var body: some View {
         ScrollView {
@@ -19,7 +29,7 @@ struct PalettePostcardView: View {
                          ? "Comienza descubriendo tu nawal"
                          : selfieImage == nil
                             ? "Tu nawal, listo para crear tu postal"
-                            : "Tu selfie y tu nawal, unidos en una postal")
+                            : "Revisa tu postal y prepárala para compartir")
                         .font(.system(.body, design: .rounded))
                         .foregroundStyle(Color.mamFondo.opacity(0.75))
                     SeparadorHilos()
@@ -76,12 +86,52 @@ struct PalettePostcardView: View {
                     withAnimation(reduceMotion ? nil : .easeOut(duration: 0.24)) {
                         selfieImage = image
                     }
+                    schedulePostcardPreparation(draft: draft, selfieImage: image)
                 }
             }
         }
         .onChange(of: draft) { oldDraft, newDraft in
             guard oldDraft != newDraft else { return }
+            postcardRenderTask?.cancel()
             selfieImage = nil
+            editorSection = .design
+            appearance = PostcardAppearance()
+            renderedPostcard = nil
+            didSavePostcard = false
+        }
+        .onDisappear {
+            postcardRenderTask?.cancel()
+        }
+        .onChange(of: appearance) { _, _ in
+            guard let draft, let selfieImage else { return }
+            schedulePostcardPreparation(draft: draft, selfieImage: selfieImage)
+        }
+        .onAppear {
+            // Resume a preparation cancelled when leaving the tab.
+            if renderedPostcard == nil, let draft, let selfieImage {
+                schedulePostcardPreparation(draft: draft, selfieImage: selfieImage)
+            }
+        }
+        .alert(
+            "No se pudo completar la acción",
+            isPresented: Binding(
+                get: { exportErrorMessage != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        exportErrorMessage = nil
+                        shouldOfferSettings = false
+                    }
+                }
+            )
+        ) {
+            if shouldOfferSettings {
+                Button("Abrir Configuración") {
+                    openSettings()
+                }
+            }
+            Button("Aceptar", role: .cancel) {}
+        } message: {
+            Text(exportErrorMessage ?? "Ocurrió un error inesperado.")
         }
     }
 
@@ -158,35 +208,135 @@ struct PalettePostcardView: View {
         selfieImage: UIImage
     ) -> some View {
         VStack(spacing: 18) {
-            HStack(spacing: 8) {
-                Image(systemName: "checkmark.seal.fill")
-                    .foregroundStyle(Color.mamJade)
-                Text("Tu postal está lista")
-                    .font(.system(.title3, design: .rounded, weight: .bold))
-            }
-
-            NawalPostcardCanvas(draft: draft, selfieImage: selfieImage)
-                .shadow(color: Color.mamFondo.opacity(0.16), radius: 8, y: 5)
-                .transition(
-                    reduceMotion
-                        ? .opacity
-                        : .scale(scale: 0.96).combined(with: .opacity)
-                )
-
-            Button {
+            PostcardEditorView(
+                draft: draft,
+                selfieImage: selfieImage,
+                selectedSection: $editorSection,
+                appearance: $appearance
+            ) {
                 isShowingSelfie = true
-            } label: {
-                Label("Cambiar selfie", systemImage: "arrow.triangle.2.circlepath.camera")
-                    .font(.system(.headline, design: .rounded))
-                    .foregroundStyle(Color.mamJade)
-                    .frame(maxWidth: .infinity, minHeight: 52)
             }
-            .buttonStyle(.bordered)
-            .tint(Color.mamJade)
+
+            exportActions(draft)
         }
         .padding(18)
         .frame(maxWidth: .infinity)
         .superficieEstuco()
+    }
+
+    @ViewBuilder
+    private func exportActions(_ draft: NawalPostcardDraft) -> some View {
+        if let renderedPostcard {
+            exportActionsLayout {
+                Button(action: savePostcard) {
+                    Group {
+                        if isSavingPostcard {
+                            ProgressView()
+                                .tint(Color.mamBlanco)
+                        } else {
+                            Label(
+                                didSavePostcard ? "Guardada" : "Guardar",
+                                systemImage: didSavePostcard ? "checkmark" : "arrow.down.to.line"
+                            )
+                        }
+                    }
+                    .font(.system(.headline, design: .rounded))
+                    .frame(maxWidth: .infinity, minHeight: 52)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Color.mamJade)
+                .disabled(isSavingPostcard || didSavePostcard)
+
+                ShareLink(
+                    item: ShareablePostcard(pngData: renderedPostcard.pngData),
+                    preview: SharePreview(
+                        "Mi Nawal: \(draft.result.energia) \(draft.result.nawal.nombre)",
+                        image: Image(uiImage: renderedPostcard.image)
+                    )
+                ) {
+                    Label("Compartir", systemImage: "square.and.arrow.up")
+                        .font(.system(.headline, design: .rounded))
+                        .frame(maxWidth: .infinity, minHeight: 52)
+                }
+                .buttonStyle(.bordered)
+                .tint(Color.mamJade)
+            }
+        } else {
+            HStack(spacing: 10) {
+                ProgressView()
+                    .tint(Color.mamJade)
+                Text("Preparando imagen…")
+                    .font(.system(.subheadline, design: .rounded))
+            }
+            .frame(maxWidth: .infinity, minHeight: 52)
+        }
+    }
+
+    private var exportActionsLayout: AnyLayout {
+        dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: 12))
+            : AnyLayout(HStackLayout(spacing: 12))
+    }
+
+    private func preparePostcard(
+        draft: NawalPostcardDraft,
+        selfieImage: UIImage
+    ) {
+        do {
+            renderedPostcard = try PostcardExportService.render(
+                draft: draft,
+                selfieImage: selfieImage,
+                appearance: appearance
+            )
+            didSavePostcard = false
+        } catch {
+            renderedPostcard = nil
+            presentExportError(error)
+        }
+    }
+
+    private func schedulePostcardPreparation(
+        draft: NawalPostcardDraft,
+        selfieImage: UIImage
+    ) {
+        postcardRenderTask?.cancel()
+        renderedPostcard = nil
+        didSavePostcard = false
+
+        postcardRenderTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(350))
+            guard !Task.isCancelled else { return }
+            preparePostcard(draft: draft, selfieImage: selfieImage)
+            postcardRenderTask = nil
+        }
+    }
+
+    private func savePostcard() {
+        guard let renderedPostcard, !isSavingPostcard else { return }
+
+        isSavingPostcard = true
+        Task {
+            do {
+                try await PostcardExportService.saveToPhotoLibrary(renderedPostcard.pngData)
+                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
+                    didSavePostcard = true
+                }
+            } catch {
+                presentExportError(error)
+            }
+            isSavingPostcard = false
+        }
+    }
+
+    private func presentExportError(_ error: Error) {
+        let exportError = error as? PostcardExportError
+        shouldOfferSettings = exportError == .photoAccessDenied
+        exportErrorMessage = error.localizedDescription
+    }
+
+    private func openSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        openURL(url)
     }
 }
 

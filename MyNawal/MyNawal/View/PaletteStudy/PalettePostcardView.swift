@@ -9,6 +9,7 @@ struct PalettePostcardView: View {
     @Environment(\.openURL) private var openURL
     @State private var isShowingSelfie = false
     @State private var selfieImage: UIImage?
+    @State private var previewSelfie: UIImage?
     @State private var editorSection: PostcardEditorSection = .design
     @State private var appearance = PostcardAppearance()
     @State private var renderedPostcard: RenderedPostcard?
@@ -83,6 +84,9 @@ struct PalettePostcardView: View {
         .fullScreenCover(isPresented: $isShowingSelfie) {
             if let draft {
                 NawalSelfieView(draft: draft) { image in
+                    // Decode a small preview once per photo, not for each gesture update.
+                    previewSelfie = image.preparingThumbnail(of: CGSize(width: 1200, height: 1200)) ?? image
+                    appearance.photo = PostcardPhotoSettings()
                     withAnimation(reduceMotion ? nil : .easeOut(duration: 0.24)) {
                         selfieImage = image
                     }
@@ -94,6 +98,7 @@ struct PalettePostcardView: View {
             guard oldDraft != newDraft else { return }
             postcardRenderTask?.cancel()
             selfieImage = nil
+            previewSelfie = nil
             editorSection = .design
             appearance = PostcardAppearance()
             renderedPostcard = nil
@@ -210,7 +215,7 @@ struct PalettePostcardView: View {
         VStack(spacing: 18) {
             PostcardEditorView(
                 draft: draft,
-                selfieImage: selfieImage,
+                selfieImage: previewSelfie ?? selfieImage,
                 selectedSection: $editorSection,
                 appearance: $appearance
             ) {

@@ -12,7 +12,7 @@ struct NawalPostcardCanvas: View {
             let nawal = draft.result.nawal
 
             ZStack {
-                PostcardBackground(design: appearance.design)
+                PostcardBackground(design: appearance.design, paper: appearance.background)
 
                 VStack(spacing: 8 * unit) {
                     Text("MI NAWAL ES")
@@ -22,7 +22,7 @@ struct NawalPostcardCanvas: View {
 
                     Text("\(draft.result.energia) \(nawal.nombre)")
                         .font(.system(size: 30 * unit, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.mamJade)
+                        .foregroundStyle(appearance.accent)
                         .lineLimit(1)
                         .minimumScaleFactor(0.72)
 
@@ -81,24 +81,9 @@ struct NawalPostcardCanvas: View {
     }
 
     private func selfieFrame(unit: CGFloat, nawalImageName: String) -> some View {
-        Image(uiImage: selfieImage)
-            .resizable()
-            .scaledToFill()
-            .frame(maxWidth: .infinity)
+        PostcardPhotoView(image: selfieImage, settings: appearance.photo,
+                          border: appearance.frameColor?.color ?? .mamArena, unit: unit)
             .frame(height: 205 * unit)
-            .clipped()
-            .overlay {
-                LinearGradient(
-                    colors: [.clear, Color.mamFondo.opacity(0.22)],
-                    startPoint: .center,
-                    endPoint: .bottom
-                )
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 18 * unit, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 18 * unit, style: .continuous)
-                    .strokeBorder(Color.mamArena, lineWidth: 2 * unit)
-            }
             .overlay(alignment: .topTrailing) {
                 ImagenNawalLocal(nombre: nawalImageName)
                     .frame(width: 68 * unit, height: 68 * unit)
@@ -106,7 +91,7 @@ struct NawalPostcardCanvas: View {
                     .background(Color.mamBlanco.opacity(0.94), in: RoundedRectangle(cornerRadius: 14 * unit))
                     .overlay {
                         RoundedRectangle(cornerRadius: 14 * unit)
-                            .strokeBorder(Color.mamAmarillo, lineWidth: 1.5 * unit)
+                            .strokeBorder(appearance.ornament, lineWidth: 1.5 * unit)
                     }
                     .shadow(color: Color.mamFondo.opacity(0.22), radius: 4 * unit, y: 2 * unit)
                     .padding(10 * unit)
@@ -122,7 +107,7 @@ struct NawalPostcardCanvas: View {
         HStack(spacing: 5 * unit) {
             Image(systemName: systemImage)
                 .font(.system(size: 10 * unit, weight: .semibold))
-                .foregroundStyle(Color.mamJade)
+                .foregroundStyle(appearance.accent)
 
             VStack(alignment: .leading, spacing: 1 * unit) {
                 Text(title.uppercased())
@@ -149,13 +134,13 @@ struct NawalPostcardCanvas: View {
     private func postcardDivider(unit: CGFloat) -> some View {
         HStack(spacing: 7 * unit) {
             Rectangle()
-                .fill(Color.mamJade.opacity(0.75))
+                .fill(appearance.accent.opacity(0.75))
                 .frame(height: unit)
             Image(systemName: "diamond.fill")
                 .font(.system(size: 7 * unit))
-                .foregroundStyle(Color.mamRojo)
+                .foregroundStyle(appearance.accentColor?.color ?? .mamRojo)
             Rectangle()
-                .fill(Color.mamJade.opacity(0.75))
+                .fill(appearance.accent.opacity(0.75))
                 .frame(height: unit)
         }
         .frame(maxWidth: 210 * unit)

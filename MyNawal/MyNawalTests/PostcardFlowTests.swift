@@ -96,6 +96,30 @@ final class PostcardFlowTests: XCTestCase {
         }
     }
 
+    func testColorPalettesExportAndPreserveFrameSelection() throws {
+        let draft = NawalPostcardDraft(
+            result: NawalCalculationResult(nawal: NawalCatalogo.items[0], energia: 11),
+            birthDateText: "10 de diciembre de 1954"
+        )
+        let selfie = try XCTUnwrap(UIImage(systemName: "person.crop.square"))
+        var appearance = PostcardAppearance(design: .woven, thickness: .bold)
+        var images = Set<Data>()
+        for palette in PostcardPalette.allCases {
+            appearance.apply(palette)
+            XCTAssertEqual(appearance.design, .woven)
+            XCTAssertEqual(appearance.thickness, .bold)
+            let export = try PostcardExportService.render(draft: draft, selfieImage: selfie, appearance: appearance)
+            XCTAssertTrue(images.insert(export.pngData).inserted)
+            XCTAssertEqual(export.image.size, PostcardExportService.exportSize)
+        }
+        let before = try PostcardExportService.render(draft: draft, selfieImage: selfie, appearance: appearance)
+        appearance.frameColor = .red
+        appearance.accentColor = .jade
+        let after = try PostcardExportService.render(draft: draft, selfieImage: selfie, appearance: appearance)
+        XCTAssertNotEqual(before.pngData, after.pngData)
+        XCTAssertEqual(appearance.background, .ivory)
+    }
+
 #if targetEnvironment(simulator)
     func testSimulatorDemoSelfieIsBundled() throws {
         let demoImage = try XCTUnwrap(UIImage(named: "SelfieDemo"))

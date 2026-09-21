@@ -31,6 +31,8 @@ struct PostcardEditorView: View {
     @Binding var selectedSection: PostcardEditorSection
     @Binding var appearance: PostcardAppearance
     let onChangePhoto: () -> Void
+    @State private var showingCustomization = false
+    @State private var changePhotoAfterDismiss = false
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -56,6 +58,52 @@ struct PostcardEditorView: View {
                 .frame(maxWidth: 300)
                 .shadow(color: Color.mamFondo.opacity(0.12), radius: 5, y: 3)
 
+            Button {
+                showingCustomization = true
+            } label: {
+                Image(systemName: "slider.horizontal.3")
+                    .font(.title3.weight(.semibold))
+                    .frame(width: 52, height: 52)
+                    .foregroundStyle(Color.mamBlanco)
+                    .background(Color.mamJade, in: Circle())
+            }
+            .buttonStyle(NawalPressStyle())
+            .accessibilityLabel("Personalizar postal")
+            .accessibilityHint("Abre diseños, colores, foto y texto")
+        }
+        .foregroundStyle(Color.mamFondo)
+        .sheet(isPresented: $showingCustomization, onDismiss: {
+            if changePhotoAfterDismiss {
+                changePhotoAfterDismiss = false
+                onChangePhoto()
+            }
+        }) {
+            NavigationStack {
+                ScrollView {
+                    VStack(spacing: 20) {
+                        NawalPostcardCanvas(draft: draft, selfieImage: selfieImage, appearance: appearance)
+                            .frame(maxWidth: 180)
+                        customizationPanel
+                    }
+                    .padding(20)
+                }
+                .background(FondoEstuco().ignoresSafeArea())
+                .navigationTitle("Personalizar postal")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Listo") { showingCustomization = false }
+                    }
+                }
+            }
+            .tint(Color.mamJade)
+            .foregroundStyle(Color.mamFondo)
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
+    }
+
+    private var customizationPanel: some View {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Personaliza tu postal")
                     .font(.system(.headline, design: .rounded))
@@ -79,8 +127,6 @@ struct PostcardEditorView: View {
                 RoundedRectangle(cornerRadius: 18)
                     .strokeBorder(Color.mamArena.opacity(0.7), lineWidth: 1)
             }
-        }
-        .foregroundStyle(Color.mamFondo)
     }
 
     private func sectionButton(_ section: PostcardEditorSection) -> some View {
@@ -119,22 +165,17 @@ struct PostcardEditorView: View {
         case .design:
             designPanel
         case .colors:
-            VStack(alignment: .leading, spacing: 10) {
-                panelTitle("Paleta actual")
-                HStack(spacing: 12) {
-                    colorSample("Jade", color: .mamJade)
-                    colorSample("Arena", color: .mamArena)
-                    colorSample("Crema", color: .mamBlanco)
-                }
-                Text("Los colores originales de tu postal.")
-                    .font(.subheadline)
-            }
+            colorsPanel
         case .photo:
             VStack(alignment: .leading, spacing: 10) {
                 panelTitle("Tu selfie")
+                PostcardPhotoControls(image: selfieImage, settings: $appearance.photo)
                 Text("Puedes elegir otra foto conservando tu nawal y su energía.")
                     .font(.subheadline)
-                Button(action: onChangePhoto) {
+                Button {
+                    changePhotoAfterDismiss = true
+                    showingCustomization = false
+                } label: {
                     Label("Cambiar selfie", systemImage: "arrow.triangle.2.circlepath.camera")
                         .font(.system(.subheadline, design: .rounded, weight: .semibold))
                         .frame(maxWidth: .infinity, minHeight: 44)
@@ -165,12 +206,14 @@ struct PostcardEditorView: View {
                     } label: {
                         VStack(spacing: 8) {
                             ZStack {
-                                PostcardBackground(design: design)
+                                PostcardBackground(design: design, paper: appearance.background)
                                 Image(systemName: "person.crop.rectangle")
                                     .font(.title)
                                     .foregroundStyle(Color.mamJade)
                                 PostcardFrame(appearance: PostcardAppearance(
-                                    design: design, thickness: appearance.thickness
+                                    design: design, thickness: appearance.thickness,
+                                    background: appearance.background,
+                                    frameColor: appearance.frameColor, accentColor: appearance.accentColor
                                 ), unit: 0.7)
                             }
                             .frame(height: 76)
@@ -207,6 +250,62 @@ struct PostcardEditorView: View {
         Text(title)
             .font(.system(.subheadline, design: .rounded, weight: .bold))
             .accessibilityAddTraits(.isHeader)
+    }
+
+    private var colorsPanel: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            panelTitle("Combinaciones")
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                ForEach(PostcardPalette.allCases) { palette in
+                    let selected = appearance.background == palette.paper
+                        && appearance.frameColor == palette.ink && appearance.accentColor == palette.ink
+                    Button {
+                        appearance.apply(palette)
+                    } label: {
+                        HStack(spacing: 8) {
+                            Circle().fill(palette.ink.color)
+                                .frame(width: 20, height: 20)
+                            Text(palette.title).font(.subheadline.weight(.semibold))
+                            Spacer(minLength: 0)
+                            if selected { Image(systemName: "checkmark").accessibilityHidden(true) }
+                        }
+                        .padding(12)
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                        .foregroundStyle(Color.mamFondo)
+                        .background(palette.paper.color, in: RoundedRectangle(cornerRadius: 12))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 12)
+                                .strokeBorder(selected ? Color.mamJade : .clear, lineWidth: 2)
+                        }
+                    }
+                    .buttonStyle(NawalPressStyle())
+                    .accessibilityAddTraits(selected ? .isSelected : [])
+                }
+            }
+            panelTitle("Ajustar por separado")
+            Picker("Fondo", selection: $appearance.background) {
+                ForEach(PostcardPaper.allCases) { paper in
+                    Text(paper.title).tag(paper)
+                }
+            }
+            inkPicker("Marco", selection: $appearance.frameColor)
+            inkPicker("Acentos", selection: $appearance.accentColor)
+            Text("Fondos claros y tonos oscuros para mantener legible la información.")
+                .font(.footnote)
+                .foregroundStyle(Color.mamFondo)
+        }
+        .pickerStyle(.menu)
+        .tint(Color.mamJade)
+    }
+
+    private func inkPicker(_ title: String, selection: Binding<PostcardInk?>) -> some View {
+        Picker(title, selection: selection) {
+            Text("Original").tag(Optional<PostcardInk>.none)
+            ForEach(PostcardInk.allCases) { ink in
+                Text(ink.title).tag(Optional(ink))
+            }
+        }
+        .frame(minHeight: 44)
     }
 
     private func colorSample(_ name: String, color: Color) -> some View {

@@ -1,12 +1,13 @@
 import Foundation
 
-nonisolated struct PostcardAppearance: Equatable, Sendable {
+nonisolated struct PostcardAppearance: Codable, Equatable, Sendable {
     var design: PostcardDesign = .classic
     var thickness: PostcardFrameThickness = .medium
     var background: PostcardPaper = .cream
     var frameColor: PostcardInk? = nil
     var accentColor: PostcardInk? = nil
     var photo = PostcardPhotoSettings()
+    var text = PostcardTextSettings()
 
     mutating func apply(_ palette: PostcardPalette) {
         background = palette.paper
@@ -15,7 +16,7 @@ nonisolated struct PostcardAppearance: Equatable, Sendable {
     }
 }
 
-nonisolated enum PostcardPaper: String, CaseIterable, Identifiable, Sendable {
+nonisolated enum PostcardPaper: String, Codable, CaseIterable, Identifiable, Sendable {
     case cream, sand, jade, rose, stone, ivory
     var id: Self { self }
     var title: String {
@@ -30,7 +31,7 @@ nonisolated enum PostcardPaper: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
-nonisolated enum PostcardInk: String, CaseIterable, Identifiable, Sendable {
+nonisolated enum PostcardInk: String, Codable, CaseIterable, Identifiable, Sendable {
     case jade, earth, red, slate, plum, charcoal
     var id: Self { self }
     var title: String {
@@ -80,7 +81,7 @@ nonisolated enum PostcardPalette: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
-nonisolated enum PostcardDesign: String, CaseIterable, Identifiable, Sendable {
+nonisolated enum PostcardDesign: String, Codable, CaseIterable, Identifiable, Sendable {
     case classic, stone, woven, minimal
     var id: Self { self }
     var title: String {
@@ -93,7 +94,7 @@ nonisolated enum PostcardDesign: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
-nonisolated enum PostcardFrameThickness: String, CaseIterable, Identifiable, Sendable {
+nonisolated enum PostcardFrameThickness: String, Codable, CaseIterable, Identifiable, Sendable {
     case fine, medium, bold
     var id: Self { self }
     var title: String {

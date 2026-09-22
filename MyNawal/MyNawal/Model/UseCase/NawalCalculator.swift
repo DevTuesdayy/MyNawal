@@ -1,6 +1,6 @@
 import Foundation
 
-struct NawalCalculationResult: Hashable {
+nonisolated struct NawalCalculationResult: Codable, Hashable, Sendable {
     let nawal: PaletteNawalItem
     let energia: Int
 }

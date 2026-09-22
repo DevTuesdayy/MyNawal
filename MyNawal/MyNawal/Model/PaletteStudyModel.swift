@@ -17,15 +17,15 @@ struct PaletteStudyContent: Hashable {
     let postcardSubtitle: String
 }
 
-struct PaletteNawalItem: Identifiable, Hashable {
-    let id = UUID()
+nonisolated struct PaletteNawalItem: Codable, Identifiable, Hashable, Sendable {
+    private(set) var id = UUID()
     let nombre: String
     let esDestacado: Bool
     let nombreImagen: String
     let informacion: NawalInformacion
 }
 
-struct NawalInformacion: Hashable {
+nonisolated struct NawalInformacion: Codable, Hashable, Sendable {
     let significado: String
     let descripcion: String
     let energia: String

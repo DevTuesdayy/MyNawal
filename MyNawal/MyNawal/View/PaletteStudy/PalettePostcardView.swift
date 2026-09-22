@@ -18,6 +18,10 @@ struct PalettePostcardView: View {
     @State private var exportErrorMessage: String?
     @State private var shouldOfferSettings = false
     @State private var postcardRenderTask: Task<Void, Never>?
+    @State private var libraryStore: PostcardLibraryStore?
+    @State private var librarySaveID = UUID()
+    @State private var isSavingToLibrary = false
+    @State private var didSaveToLibrary = false
 
     var body: some View {
         ScrollView {
@@ -86,6 +90,7 @@ struct PalettePostcardView: View {
                 NawalSelfieView(draft: draft) { image in
                     // Decode a small preview once per photo, not for each gesture update.
                     previewSelfie = image.preparingThumbnail(of: CGSize(width: 1200, height: 1200)) ?? image
+                    resetLibrarySave()
                     appearance.photo = PostcardPhotoSettings()
                     withAnimation(reduceMotion ? nil : .easeOut(duration: 0.24)) {
                         selfieImage = image
@@ -103,11 +108,13 @@ struct PalettePostcardView: View {
             appearance = PostcardAppearance()
             renderedPostcard = nil
             didSavePostcard = false
+            resetLibrarySave()
         }
         .onDisappear {
             postcardRenderTask?.cancel()
         }
         .onChange(of: appearance) { _, _ in
+            resetLibrarySave()
             guard let draft, let selfieImage else { return }
             schedulePostcardPreparation(draft: draft, selfieImage: selfieImage)
         }
@@ -221,12 +228,44 @@ struct PalettePostcardView: View {
             ) {
                 isShowingSelfie = true
             }
+            .disabled(isSavingToLibrary)
 
+            librarySaveAction
             exportActions(draft)
         }
         .padding(18)
         .frame(maxWidth: .infinity)
         .superficieEstuco()
+    }
+
+    private var librarySaveAction: some View {
+        VStack(spacing: 6) {
+            Button(action: saveToLibrary) {
+                HStack(spacing: 10) {
+                    if isSavingToLibrary {
+                        ProgressView().tint(Color.mamBlanco)
+                    }
+                    Label(
+                        isSavingToLibrary ? "Guardando…" :
+                            didSaveToLibrary ? "Guardada en Mis postales" : "Guardar en Mis postales",
+                        systemImage: didSaveToLibrary ? "checkmark.circle.fill" : "rectangle.stack.badge.plus"
+                    )
+                    .fixedSize(horizontal: false, vertical: true)
+                }
+                .font(.system(.headline, design: .rounded))
+                .frame(maxWidth: .infinity, minHeight: 52)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(Color.mamJade)
+            .disabled(renderedPostcard == nil || isSavingToLibrary || didSaveToLibrary)
+            .accessibilityHint("Guarda la postal y sus ajustes en este dispositivo para editarla después")
+
+            Text(didSaveToLibrary
+                 ? "Tu diseño quedó guardado en este dispositivo."
+                 : "Conserva tu foto y los ajustes para editarla después.")
+                .font(.footnote)
+                .foregroundStyle(Color.mamFondo)
+        }
     }
 
     @ViewBuilder
@@ -237,10 +276,10 @@ struct PalettePostcardView: View {
                     Group {
                         if isSavingPostcard {
                             ProgressView()
-                                .tint(Color.mamBlanco)
+                                .tint(Color.mamJade)
                         } else {
                             Label(
-                                didSavePostcard ? "Guardada" : "Guardar",
+                                didSavePostcard ? "Guardada en Fotos" : "Guardar en Fotos",
                                 systemImage: didSavePostcard ? "checkmark" : "arrow.down.to.line"
                             )
                         }
@@ -248,7 +287,7 @@ struct PalettePostcardView: View {
                     .font(.system(.headline, design: .rounded))
                     .frame(maxWidth: .infinity, minHeight: 52)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.bordered)
                 .tint(Color.mamJade)
                 .disabled(isSavingPostcard || didSavePostcard)
 
@@ -330,6 +369,46 @@ struct PalettePostcardView: View {
                 presentExportError(error)
             }
             isSavingPostcard = false
+        }
+    }
+
+    private func resetLibrarySave() {
+        librarySaveID = UUID()
+        didSaveToLibrary = false
+    }
+
+    private func saveToLibrary() {
+        guard let draft, let selfieImage, let renderedPostcard,
+              !isSavingToLibrary, !didSaveToLibrary else { return }
+        let saveID = librarySaveID
+        let savedAppearance = appearance
+        isSavingToLibrary = true
+
+        Task { @MainActor in
+            defer { isSavingToLibrary = false }
+            do {
+                if libraryStore == nil {
+                    libraryStore = try PostcardLibraryStore()
+                }
+                guard let store = libraryStore else { return }
+                // Encode the original photo only on explicit save, away from UI updates.
+                let data = await Task.detached(priority: .utility) {
+                    selfieImage.pngData()
+                }.value
+                guard let data else { throw PostcardLibraryError.invalidImage }
+                _ = try await store.save(
+                    id: saveID, draft: draft, appearance: savedAppearance,
+                    selfieData: data, renderedPNG: renderedPostcard.pngData
+                )
+                // A new calculation may have replaced the editor during the disk operation.
+                guard librarySaveID == saveID else { return }
+                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
+                    didSaveToLibrary = true
+                }
+            } catch {
+                guard librarySaveID == saveID else { return }
+                presentExportError(error)
+            }
         }
     }
 

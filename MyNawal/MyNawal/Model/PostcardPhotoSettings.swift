@@ -1,6 +1,6 @@
 import Foundation
 
-nonisolated struct PostcardPhotoSettings: Equatable, Sendable {
+nonisolated struct PostcardPhotoSettings: Codable, Equatable, Sendable {
     var zoom: Double = 1
     // Fractions of available overflow, so framing is independent of export resolution.
     var x: Double = 0
@@ -19,7 +19,7 @@ nonisolated struct PostcardPhotoSettings: Equatable, Sendable {
     }
 }
 
-nonisolated enum PostcardPhotoShape: String, CaseIterable, Identifiable, Sendable {
+nonisolated enum PostcardPhotoShape: String, Codable, CaseIterable, Identifiable, Sendable {
     case rounded, circle, oval
     var id: Self { self }
     var title: String {
@@ -31,7 +31,7 @@ nonisolated enum PostcardPhotoShape: String, CaseIterable, Identifiable, Sendabl
     }
 }
 
-nonisolated enum PostcardPhotoFinish: String, CaseIterable, Identifiable, Sendable {
+nonisolated enum PostcardPhotoFinish: String, Codable, CaseIterable, Identifiable, Sendable {
     case natural, warm, monochrome
     var id: Self { self }
     var title: String {

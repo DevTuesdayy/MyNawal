@@ -184,15 +184,7 @@ struct PostcardEditorView: View {
                 .tint(Color.mamJade)
             }
         case .text:
-            VStack(alignment: .leading, spacing: 10) {
-                panelTitle("Datos de tu postal")
-                Text("\(draft.result.energia) \(draft.result.nawal.nombre)")
-                    .font(.headline)
-                Text(draft.birthDateText)
-                    .font(.subheadline)
-                Text("Incluye el significado, el animal y el elemento de tu nawal.")
-                    .font(.subheadline)
-            }
+            textPanel
         }
     }
 
@@ -306,6 +298,79 @@ struct PostcardEditorView: View {
             }
         }
         .frame(minHeight: 44)
+    }
+
+    private var textPanel: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            panelTitle("Texto personal")
+
+            VStack(alignment: .leading, spacing: 6) {
+                TextField("Tu nombre (opcional)", text: $appearance.text.personName)
+                    .textInputAutocapitalization(.words)
+                    .submitLabel(.done)
+                    .onChange(of: appearance.text.personName) { _, value in
+                        appearance.text.personName = String(value.prefix(PostcardTextSettings.nameLimit))
+                    }
+                Text("\(appearance.text.personName.count)/\(PostcardTextSettings.nameLimit)")
+                    .font(.caption2)
+                    .foregroundStyle(Color.mamFondo.opacity(0.65))
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+            .padding(12)
+            .background(Color.white.opacity(0.44), in: RoundedRectangle(cornerRadius: 12))
+
+            VStack(alignment: .leading, spacing: 6) {
+                TextField("Mensaje corto (opcional)", text: $appearance.text.message, axis: .vertical)
+                    .lineLimit(2, reservesSpace: true)
+                    .submitLabel(.done)
+                    .onChange(of: appearance.text.message) { _, value in
+                        appearance.text.message = String(value.prefix(PostcardTextSettings.messageLimit))
+                    }
+                Text("\(appearance.text.message.count)/\(PostcardTextSettings.messageLimit)")
+                    .font(.caption2)
+                    .foregroundStyle(Color.mamFondo.opacity(0.65))
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+            .padding(12)
+            .background(Color.white.opacity(0.44), in: RoundedRectangle(cornerRadius: 12))
+
+            Picker("Tipografía", selection: $appearance.text.typography) {
+                ForEach(PostcardTypography.allCases) { typography in
+                    Text(typography.title).tag(typography)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            panelTitle("Datos visibles")
+            VStack(spacing: 0) {
+                textToggle("Fecha de nacimiento", isOn: $appearance.text.showsDate)
+                Divider()
+                textToggle("Animal o representación", isOn: $appearance.text.showsAnimal)
+                Divider()
+                textToggle("Elemento", isOn: $appearance.text.showsElement)
+                Divider()
+                textToggle("Asociaciones simbólicas", isOn: $appearance.text.showsEnergyAssociations)
+            }
+            .padding(.horizontal, 12)
+            .background(Color.white.opacity(0.44), in: RoundedRectangle(cornerRadius: 12))
+
+            Text("El número de energía y el nombre del nawal siempre permanecen visibles.")
+                .font(.footnote)
+                .foregroundStyle(Color.mamFondo.opacity(0.72))
+
+            Button("Restablecer texto", systemImage: "arrow.counterclockwise") {
+                appearance.text = PostcardTextSettings()
+            }
+            .frame(minHeight: 44)
+            .tint(Color.mamJade)
+        }
+    }
+
+    private func textToggle(_ title: String, isOn: Binding<Bool>) -> some View {
+        Toggle(title, isOn: isOn)
+            .font(.system(.subheadline, design: .rounded, weight: .medium))
+            .tint(Color.mamJade)
+            .frame(minHeight: 48)
     }
 
     private func colorSample(_ name: String, color: Color) -> some View {

@@ -10,58 +10,90 @@ struct NawalPostcardCanvas: View {
         GeometryReader { proxy in
             let unit = proxy.size.width / 360
             let nawal = draft.result.nawal
+            let text = appearance.text
+            let fontDesign = text.typography.fontDesign
+            let extraTextBlocks = (text.trimmedName.isEmpty ? 0 : 1)
+                + (text.showsEnergyAssociations ? 1 : 0)
+            let photoHeight = extraTextBlocks == 2 ? 188.0 : (extraTextBlocks == 1 ? 196.0 : 205.0)
 
             ZStack {
                 PostcardBackground(design: appearance.design, paper: appearance.background)
 
                 VStack(spacing: 8 * unit) {
+                    if !text.trimmedName.isEmpty {
+                        Text(text.trimmedName.uppercased())
+                            .font(.system(size: 9 * unit, weight: .semibold, design: fontDesign))
+                            .tracking(1.2 * unit)
+                            .foregroundStyle(Color.mamFondo.opacity(0.62))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                    }
+
                     Text("MI NAWAL ES")
-                        .font(.system(size: 11 * unit, weight: .semibold, design: .rounded))
+                        .font(.system(size: 11 * unit, weight: .semibold, design: fontDesign))
                         .tracking(1.8 * unit)
                         .foregroundStyle(Color.mamFondo.opacity(0.7))
 
                     Text("\(draft.result.energia) \(nawal.nombre)")
-                        .font(.system(size: 30 * unit, weight: .bold, design: .rounded))
+                        .font(.system(size: 30 * unit, weight: .bold, design: fontDesign))
                         .foregroundStyle(appearance.accent)
                         .lineLimit(1)
                         .minimumScaleFactor(0.72)
 
                     Text(nawal.informacion.significado)
-                        .font(.system(size: 13 * unit, weight: .medium, design: .rounded))
+                        .font(.system(size: 13 * unit, weight: .medium, design: fontDesign))
                         .foregroundStyle(Color.mamFondo.opacity(0.82))
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
 
-                    selfieFrame(unit: unit, nawalImageName: nawal.nombreImagen)
+                    selfieFrame(unit: unit, height: photoHeight, nawalImageName: nawal.nombreImagen)
 
-                    HStack(spacing: 8 * unit) {
-                        postcardFact(
-                            title: "Animal",
-                            value: nawal.informacion.animal,
-                            systemImage: "pawprint.fill",
-                            unit: unit
-                        )
-                        postcardFact(
-                            title: "Elemento",
-                            value: nawal.informacion.elemento,
-                            systemImage: "sparkles",
-                            unit: unit
-                        )
+                    if text.showsAnimal || text.showsElement {
+                        HStack(spacing: 8 * unit) {
+                            if text.showsAnimal {
+                                postcardFact(
+                                    title: "Animal",
+                                    value: nawal.informacion.animal,
+                                    systemImage: "pawprint.fill",
+                                    unit: unit,
+                                    fontDesign: fontDesign
+                                )
+                            }
+                            if text.showsElement {
+                                postcardFact(
+                                    title: "Elemento",
+                                    value: nawal.informacion.elemento,
+                                    systemImage: "sparkles",
+                                    unit: unit,
+                                    fontDesign: fontDesign
+                                )
+                            }
+                        }
                     }
 
                     postcardDivider(unit: unit)
 
-                    Text(draft.birthDateText)
-                        .font(.system(size: 12 * unit, weight: .semibold, design: .rounded))
-                        .foregroundStyle(Color.mamFondo)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
+                    if text.showsEnergyAssociations {
+                        Text(nawal.informacion.energia)
+                            .font(.system(size: 9.5 * unit, weight: .medium, design: fontDesign))
+                            .foregroundStyle(Color.mamFondo.opacity(0.78))
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.72)
+                    }
 
-                    Text("Conecta con tu esencia  •  Honra tu origen")
-                        .font(.system(size: 9.5 * unit, weight: .medium, design: .rounded))
+                    if text.showsDate {
+                        Text(draft.birthDateText)
+                            .font(.system(size: 12 * unit, weight: .semibold, design: fontDesign))
+                            .foregroundStyle(Color.mamFondo)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
+
+                    Text(text.resolvedMessage)
+                        .font(.system(size: 9.5 * unit, weight: .medium, design: fontDesign))
                         .foregroundStyle(Color.mamFondo.opacity(0.64))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.72)
                 }
                 .multilineTextAlignment(.center)
                 .padding(18 * unit)
@@ -73,17 +105,13 @@ struct NawalPostcardCanvas: View {
         }
         .aspectRatio(4 / 5, contentMode: .fit)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(
-            "Postal Nawal. Energía \(draft.result.energia), \(draft.result.nawal.nombre). "
-            + "Animal o representación: \(draft.result.nawal.informacion.animal). "
-            + "Elemento: \(draft.result.nawal.informacion.elemento). Fecha: \(draft.birthDateText)."
-        )
+        .accessibilityLabel(accessibilityDescription)
     }
 
-    private func selfieFrame(unit: CGFloat, nawalImageName: String) -> some View {
+    private func selfieFrame(unit: CGFloat, height: Double, nawalImageName: String) -> some View {
         PostcardPhotoView(image: selfieImage, settings: appearance.photo,
                           border: appearance.frameColor?.color ?? .mamArena, unit: unit)
-            .frame(height: 205 * unit)
+            .frame(height: height * unit)
             .overlay(alignment: .topTrailing) {
                 ImagenNawalLocal(nombre: nawalImageName)
                     .frame(width: 68 * unit, height: 68 * unit)
@@ -98,11 +126,27 @@ struct NawalPostcardCanvas: View {
             }
     }
 
+    private var accessibilityDescription: String {
+        let text = appearance.text
+        let nawal = draft.result.nawal
+        var parts = ["Postal Nawal.", "Energía \(draft.result.energia), \(nawal.nombre)."]
+        if !text.trimmedName.isEmpty { parts.append("Personalizada por \(text.trimmedName).") }
+        if text.showsAnimal { parts.append("Animal o representación: \(nawal.informacion.animal).") }
+        if text.showsElement { parts.append("Elemento: \(nawal.informacion.elemento).") }
+        if text.showsEnergyAssociations { parts.append("Asociaciones simbólicas: \(nawal.informacion.energia).") }
+        if text.showsDate { parts.append("Fecha: \(draft.birthDateText).") }
+        if !text.message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            parts.append("Mensaje: \(text.resolvedMessage).")
+        }
+        return parts.joined(separator: " ")
+    }
+
     private func postcardFact(
         title: String,
         value: String,
         systemImage: String,
-        unit: CGFloat
+        unit: CGFloat,
+        fontDesign: Font.Design
     ) -> some View {
         HStack(spacing: 5 * unit) {
             Image(systemName: systemImage)
@@ -111,10 +155,10 @@ struct NawalPostcardCanvas: View {
 
             VStack(alignment: .leading, spacing: 1 * unit) {
                 Text(title.uppercased())
-                    .font(.system(size: 7.5 * unit, weight: .bold, design: .rounded))
+                    .font(.system(size: 7.5 * unit, weight: .bold, design: fontDesign))
                     .foregroundStyle(Color.mamFondo.opacity(0.55))
                 Text(value)
-                    .font(.system(size: 10 * unit, weight: .semibold, design: .rounded))
+                    .font(.system(size: 10 * unit, weight: .semibold, design: fontDesign))
                     .foregroundStyle(Color.mamFondo)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
@@ -145,6 +189,16 @@ struct NawalPostcardCanvas: View {
         }
         .frame(maxWidth: 210 * unit)
         .accessibilityHidden(true)
+    }
+}
+
+private extension PostcardTypography {
+    var fontDesign: Font.Design {
+        switch self {
+        case .rounded: .rounded
+        case .classic: .serif
+        case .clean: .default
+        }
     }
 }
 

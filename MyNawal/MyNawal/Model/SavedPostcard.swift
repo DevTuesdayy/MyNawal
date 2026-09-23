@@ -7,6 +7,7 @@ nonisolated struct SavedPostcard: Codable, Identifiable, Equatable, Sendable {
     let createdAt: Date
     let draft: NawalPostcardDraft
     let appearance: PostcardAppearance
+    var updatedAt: Date? = nil
 }
 
 nonisolated enum PostcardAsset: String, Sendable {

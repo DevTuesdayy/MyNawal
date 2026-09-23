@@ -30,6 +30,29 @@ actor PostcardLibraryStore {
         selfieData: Data,
         renderedPNG: Data
     ) throws -> SavedPostcard {
+        let record = SavedPostcard(
+            schemaVersion: 1, id: id, createdAt: Date(),
+            draft: draft, appearance: appearance
+        )
+        return try persist(record, selfieData: selfieData, renderedPNG: renderedPNG, replacing: false)
+    }
+
+    /// Keeps the original identity, creation date and calculated nawal.
+    func update(
+        id: UUID, appearance: PostcardAppearance, selfieData: Data, renderedPNG: Data
+    ) throws -> SavedPostcard {
+        let original = try load(id: id)
+        let record = SavedPostcard(
+            schemaVersion: 1, id: original.id, createdAt: original.createdAt,
+            draft: original.draft, appearance: appearance, updatedAt: Date()
+        )
+        return try persist(record, selfieData: selfieData, renderedPNG: renderedPNG, replacing: true)
+    }
+
+    private func persist(
+        _ record: SavedPostcard, selfieData: Data, renderedPNG: Data, replacing: Bool
+    ) throws -> SavedPostcard {
+        let draft = record.draft
         guard (1...13).contains(draft.result.energia) else {
             throw PostcardLibraryError.invalidRecord
         }
@@ -45,14 +68,10 @@ actor PostcardLibraryStore {
         }
         let thumbnail = try makeThumbnail(from: rendered)
         try fileManager.createDirectory(at: rootURL, withIntermediateDirectories: true)
-        let destination = folder(for: id)
-        guard !fileManager.fileExists(atPath: destination.path) else {
+        let destination = folder(for: record.id)
+        guard replacing || !fileManager.fileExists(atPath: destination.path) else {
             throw PostcardLibraryError.alreadyExists
         }
-        let record = SavedPostcard(
-            schemaVersion: 1, id: id, createdAt: Date(),
-            draft: draft, appearance: appearance
-        )
         let metadata = try JSONEncoder().encode(record)
         let staging = rootURL.appendingPathComponent(".staging-" + UUID().uuidString, isDirectory: true)
         try fileManager.createDirectory(at: staging, withIntermediateDirectories: false)
@@ -61,7 +80,11 @@ actor PostcardLibraryStore {
         try selfieData.write(to: staging.appendingPathComponent(PostcardAsset.selfie.rawValue), options: .atomic)
         try renderedPNG.write(to: staging.appendingPathComponent(PostcardAsset.rendered.rawValue), options: .atomic)
         try thumbnail.write(to: staging.appendingPathComponent(PostcardAsset.thumbnail.rawValue), options: .atomic)
-        try fileManager.moveItem(at: staging, to: destination)
+        if replacing {
+            _ = try fileManager.replaceItemAt(destination, withItemAt: staging)
+        } else {
+            try fileManager.moveItem(at: staging, to: destination)
+        }
         return record
     }
 

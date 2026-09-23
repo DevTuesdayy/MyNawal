@@ -334,12 +334,11 @@ struct PostcardEditorView: View {
             .padding(12)
             .background(Color.white.opacity(0.44), in: RoundedRectangle(cornerRadius: 12))
 
-            Picker("Tipografía", selection: $appearance.text.typography) {
-                ForEach(PostcardTypography.allCases) { typography in
-                    Text(typography.title).tag(typography)
-                }
+            if dynamicTypeSize.isAccessibilitySize {
+                typographyPicker.pickerStyle(.menu)
+            } else {
+                typographyPicker.pickerStyle(.segmented)
             }
-            .pickerStyle(.segmented)
 
             panelTitle("Datos visibles")
             VStack(spacing: 0) {
@@ -371,6 +370,15 @@ struct PostcardEditorView: View {
             .font(.system(.subheadline, design: .rounded, weight: .medium))
             .tint(Color.mamJade)
             .frame(minHeight: 48)
+    }
+
+    private var typographyPicker: some View {
+        Picker("Tipografía", selection: $appearance.text.typography) {
+            ForEach(PostcardTypography.allCases) { typography in
+                Text(typography.title).tag(typography)
+            }
+        }
+        .frame(minHeight: 44)
     }
 
     private func colorSample(_ name: String, color: Color) -> some View {

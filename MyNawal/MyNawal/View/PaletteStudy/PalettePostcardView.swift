@@ -22,6 +22,7 @@ struct PalettePostcardView: View {
     @State private var librarySaveID = UUID()
     @State private var isSavingToLibrary = false
     @State private var didSaveToLibrary = false
+    @State private var isShowingLibrary = false
 
     var body: some View {
         ScrollView {
@@ -39,6 +40,23 @@ struct PalettePostcardView: View {
                         .foregroundStyle(Color.mamFondo.opacity(0.75))
                     SeparadorHilos()
                 }
+
+                Button {
+                    do {
+                        if libraryStore == nil { libraryStore = try PostcardLibraryStore() }
+                        isShowingLibrary = true
+                    } catch {
+                        presentExportError(error)
+                    }
+                } label: {
+                    Label("Mis postales", systemImage: "rectangle.stack")
+                        .font(.system(.headline, design: .rounded))
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                }
+                .buttonStyle(.bordered)
+                .tint(Color.mamJade)
+                .disabled(isSavingToLibrary)
+                .accessibilityHint("Abre la galería de postales guardadas en este dispositivo")
 
                 if let draft {
                     if let selfieImage {
@@ -85,6 +103,11 @@ struct PalettePostcardView: View {
             .frame(maxWidth: .infinity)
         }
         .background(FondoEstuco().ignoresSafeArea())
+        .sheet(isPresented: $isShowingLibrary) {
+            if let libraryStore {
+                PostcardLibraryView(store: libraryStore)
+            }
+        }
         .fullScreenCover(isPresented: $isShowingSelfie) {
             if let draft {
                 NawalSelfieView(draft: draft) { image in
@@ -393,7 +416,7 @@ struct PalettePostcardView: View {
                 guard let store = libraryStore else { return }
                 // Encode the original photo only on explicit save, away from UI updates.
                 let data = await Task.detached(priority: .utility) {
-                    selfieImage.pngData()
+                    PostcardPhotoEncoding.pngData(selfieImage)
                 }.value
                 guard let data else { throw PostcardLibraryError.invalidImage }
                 _ = try await store.save(

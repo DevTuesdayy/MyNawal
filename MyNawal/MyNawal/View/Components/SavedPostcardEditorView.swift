@@ -32,71 +32,71 @@ struct SavedPostcardEditorView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    if let selfie {
-                        PostcardEditorView(
-                            draft: record.draft, selfieImage: preview ?? selfie,
-                            selectedSection: $section, appearance: $appearance
-                        ) {
-                            showingSelfie = true
-                        }
-                        .disabled(isSaving)
-
-                        Button { save(asCopy: false) } label: {
-                            Label("Actualizar postal", systemImage: "checkmark.circle")
-                                .fixedSize(horizontal: false, vertical: true)
-                                .frame(maxWidth: .infinity, minHeight: 48)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(isSaving || !hasChanges)
-
-                        Button { save(asCopy: true) } label: {
-                            Label("Guardar una copia", systemImage: "plus.square.on.square")
-                                .fixedSize(horizontal: false, vertical: true)
-                                .frame(maxWidth: .infinity, minHeight: 48)
-                        }
-                        .buttonStyle(.bordered)
-                        .disabled(isSaving || didSaveCopy)
-
-                        if isSaving {
-                            ProgressView("Guardando tu postal…")
-                        }
-                        if let confirmation {
-                            Text(confirmation)
-                                .font(.subheadline)
-                                .accessibilityLabel(confirmation)
-                                .transition(.opacity)
-                        }
-                    } else if isLoading {
-                        ProgressView("Abriendo tu postal…")
-                    } else {
-                        Text("No se pudo recuperar la foto de esta postal.")
-                        Button("Volver a intentar") {
-                            Task { await load() }
-                        }
-                    }
-                }
-                .padding(24)
-                .frame(maxWidth: 520)
-                .frame(maxWidth: .infinity)
-            }
-            .background(FondoEstuco().ignoresSafeArea())
-            .foregroundStyle(Color.mamFondo)
-            .navigationTitle("Editar postal")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Cerrar") {
-                        if hasChanges { discardChanges = true } else { dismiss() }
+        ScrollView {
+            VStack(spacing: 20) {
+                if let selfie {
+                    PostcardEditorView(
+                        draft: record.draft, selfieImage: preview ?? selfie,
+                        selectedSection: $section, appearance: $appearance
+                    ) {
+                        showingSelfie = true
                     }
                     .disabled(isSaving)
+
+                    Button { save(asCopy: false) } label: {
+                        Label("Actualizar postal", systemImage: "checkmark.circle")
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, minHeight: 48)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(isSaving || !hasChanges)
+
+                    Button { save(asCopy: true) } label: {
+                        Label("Guardar una copia", systemImage: "plus.square.on.square")
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, minHeight: 48)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(isSaving || didSaveCopy)
+
+                    if isSaving {
+                        ProgressView("Guardando tu postal…")
+                    }
+                    if let confirmation {
+                        Text(confirmation)
+                            .font(.subheadline)
+                            .accessibilityLabel(confirmation)
+                            .transition(.opacity)
+                    }
+                } else if isLoading {
+                    ProgressView("Abriendo tu postal…")
+                } else {
+                    Text("No se pudo recuperar la foto de esta postal.")
+                    Button("Volver a intentar") {
+                        Task { await load() }
+                    }
                 }
+            }
+            .padding(24)
+            .frame(maxWidth: 520)
+            .frame(maxWidth: .infinity)
+        }
+        .background(FondoEstuco().ignoresSafeArea())
+        .foregroundStyle(Color.mamFondo)
+        .navigationTitle("Editar postal")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden()
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    if hasChanges { discardChanges = true } else { dismiss() }
+                } label: {
+                    Label("Mis postales", systemImage: "chevron.left")
+                }
+                .disabled(isSaving)
             }
         }
         .tint(Color.mamJade)
-        .interactiveDismissDisabled(hasChanges || isSaving)
         .task { await load() }
         .onChange(of: appearance) { _, _ in
             editingChanged()

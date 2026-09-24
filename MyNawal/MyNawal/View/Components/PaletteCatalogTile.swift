@@ -5,6 +5,8 @@ struct TarjetaCatalogoNawal: View {
     let estaSeleccionado: Bool
     let alSeleccionar: () -> Void
 
+    @Environment(\.dynamicTypeSize) private var textSize
+
     private let contorno = RoundedRectangle(cornerRadius: 18, style: .continuous)
 
     var body: some View {
@@ -12,7 +14,7 @@ struct TarjetaCatalogoNawal: View {
             VStack(spacing: 12) {
                 ImagenNawalLocal(nombre: nawal.nombreImagen)
                     .aspectRatio(1, contentMode: .fit)
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: textSize.isAccessibilitySize ? 180 : .infinity)
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
                 Text(nawal.nombre)
@@ -54,7 +56,7 @@ struct TarjetaCatalogoNawal: View {
 #Preview {
     TarjetaCatalogoNawal(
         nawal: NawalCatalogo.items[0],
-        estaSeleccionado: true,
+        estaSeleccionado: false,
         alSeleccionar: {}
     )
     .padding()

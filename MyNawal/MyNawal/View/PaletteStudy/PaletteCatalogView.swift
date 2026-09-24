@@ -55,11 +55,6 @@ struct PaletteCatalogView: View {
             FondoEstuco()
                 .ignoresSafeArea()
         )
-        .onAppear {
-            if identificadorSeleccionado == nil {
-                identificadorSeleccionado = content.catalogItems.first(where: \.esDestacado)?.id
-            }
-        }
         .navigationDestination(item: $nawalSeleccionado) { nawal in
             if reduceMotion {
                 DetalleNawalView(nawal: nawal)

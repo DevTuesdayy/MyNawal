@@ -22,7 +22,7 @@ struct PalettePostcardView: View {
     @State private var librarySaveID = UUID()
     @State private var isSavingToLibrary = false
     @State private var didSaveToLibrary = false
-    @State private var isShowingLibrary = false
+    @State private var librarySession: PostcardLibrarySession?
 
     var body: some View {
         ScrollView {
@@ -43,8 +43,14 @@ struct PalettePostcardView: View {
 
                 Button {
                     do {
-                        if libraryStore == nil { libraryStore = try PostcardLibraryStore() }
-                        isShowingLibrary = true
+                        let store: PostcardLibraryStore
+                        if let libraryStore {
+                            store = libraryStore
+                        } else {
+                            store = try PostcardLibraryStore()
+                            libraryStore = store
+                        }
+                        librarySession = PostcardLibrarySession(store: store)
                     } catch {
                         presentExportError(error)
                     }
@@ -103,10 +109,8 @@ struct PalettePostcardView: View {
             .frame(maxWidth: .infinity)
         }
         .background(FondoEstuco().ignoresSafeArea())
-        .sheet(isPresented: $isShowingLibrary) {
-            if let libraryStore {
-                PostcardLibraryView(store: libraryStore)
-            }
+        .sheet(item: $librarySession) { session in
+            PostcardLibraryView(store: session.store)
         }
         .fullScreenCover(isPresented: $isShowingSelfie) {
             if let draft {
@@ -445,6 +449,11 @@ struct PalettePostcardView: View {
         guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
         openURL(url)
     }
+}
+
+private struct PostcardLibrarySession: Identifiable {
+    let id = UUID()
+    let store: PostcardLibraryStore
 }
 
 #Preview("Sin resultado") {

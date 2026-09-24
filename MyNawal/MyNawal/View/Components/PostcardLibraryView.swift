@@ -10,7 +10,7 @@ struct PostcardLibraryView: View {
     @State private var records: [SavedPostcard] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
-    @State private var selectedPostcard: SavedPostcard?
+    @State private var navigationPath: [UUID] = []
     @State private var pendingDeletion: SavedPostcard?
     @State private var busyID: UUID?
     @State private var actionError: String?
@@ -26,7 +26,7 @@ struct PostcardLibraryView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             ScrollView {
                 VStack(spacing: 24) {
                     Text("Tus recuerdos, con tu esencia")
@@ -67,7 +67,7 @@ struct PostcardLibraryView: View {
                             ForEach(records) { record in
                                 VStack(spacing: 4) {
                                     Button {
-                                        selectedPostcard = record
+                                        navigationPath.append(record.id)
                                     } label: {
                                         PostcardLibraryTile(record: record, store: store)
                                             .id("\(record.id)-\(String(describing: record.updatedAt))")
@@ -96,13 +96,23 @@ struct PostcardLibraryView: View {
                         .disabled(busyID != nil)
                 }
             }
+            .navigationDestination(for: UUID.self) { id in
+                if let record = records.first(where: { $0.id == id }) {
+                    SavedPostcardEditorView(record: record, store: store)
+                } else {
+                    Text("Esta postal ya no está disponible.")
+                }
+            }
             .refreshable { await reload() }
             .task { await reload() }
         }
         .tint(Color.mamJade)
-        .presentationDragIndicator(.visible)
-        .presentationDetents([.large])
         .interactiveDismissDisabled(busyID != nil)
+        .onChange(of: navigationPath) { previous, current in
+            if !previous.isEmpty && current.isEmpty {
+                Task { await reload() }
+            }
+        }
         .safeAreaInset(edge: .bottom) {
             if busyID != nil {
                 ProgressView("Preparando postal…")
@@ -119,11 +129,6 @@ struct PostcardLibraryView: View {
                     .background(Color.mamBlanco)
                     .transition(.opacity)
             }
-        }
-        .sheet(item: $selectedPostcard, onDismiss: {
-            Task { await reload() }
-        }) { record in
-            SavedPostcardEditorView(record: record, store: store)
         }
         .sheet(item: $shareImage) { payload in
             LibraryShareSheet(image: payload.image)
@@ -162,7 +167,7 @@ struct PostcardLibraryView: View {
     private func actions(for record: SavedPostcard) -> some View {
         Menu {
             Button("Editar", systemImage: "slider.horizontal.3") {
-                selectedPostcard = record
+                navigationPath.append(record.id)
             }
             Button("Compartir", systemImage: "square.and.arrow.up") {
                 export(record, toPhotos: false)

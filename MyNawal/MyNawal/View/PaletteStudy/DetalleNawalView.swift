@@ -5,7 +5,6 @@ struct DetalleNawalView: View {
 
     @Environment(\.dismiss) private var cerrarVista
     @ScaledMetric(relativeTo: .largeTitle) private var tamanoNombre = 54.0
-    @ScaledMetric(relativeTo: .body) private var tamanoDescripcion = 19.0
     @ScaledMetric(relativeTo: .body) private var tamanoInformacion = 18.0
 
     var body: some View {
@@ -74,17 +73,24 @@ struct DetalleNawalView: View {
                 .padding(24)
                 .superficieEstuco()
                 .nawalEntrance(delay: 0.08)
-                
-                Text(nawal.informacion.descripcion)
-                    .font(.system(size: tamanoDescripcion, weight: .regular, design: .rounded))
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(Color.mamFondo)
-                    .lineSpacing(5)
-                    .frame(maxWidth: .infinity)
-                    .padding(20)
-                    .superficieEstuco()
-                    .nawalEntrance()
 
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Descripción")
+                        .font(.system(.headline, design: .rounded))
+                        .foregroundStyle(Color.mamFondo)
+                        .accessibilityAddTraits(.isHeader)
+
+                    Text(nawal.informacion.descripcion)
+                        .font(.system(size: tamanoInformacion, weight: .regular, design: .rounded))
+                        .multilineTextAlignment(.leading)
+                        .foregroundStyle(Color.mamFondo)
+                        .lineSpacing(5)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(20)
+                .superficieEstuco()
+                .nawalEntrance()
             }
             .frame(maxWidth: 520)
             .padding(.horizontal, 24)

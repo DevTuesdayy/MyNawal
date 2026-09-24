@@ -55,7 +55,7 @@ struct PostcardEditorView: View {
 
             // Keep the existing canvas alive when changing panels; no PNG rendering here.
             NawalPostcardCanvas(draft: draft, selfieImage: selfieImage, appearance: appearance)
-                .frame(maxWidth: 300)
+                .frame(maxWidth: 360)
                 .shadow(color: Color.mamFondo.opacity(0.12), radius: 5, y: 3)
 
             Button {
@@ -82,7 +82,7 @@ struct PostcardEditorView: View {
                 ScrollView {
                     VStack(spacing: 20) {
                         NawalPostcardCanvas(draft: draft, selfieImage: selfieImage, appearance: appearance)
-                            .frame(maxWidth: 180)
+                            .frame(maxWidth: 360)
                         customizationPanel
                     }
                     .padding(20)
@@ -169,7 +169,14 @@ struct PostcardEditorView: View {
         case .photo:
             VStack(alignment: .leading, spacing: 10) {
                 panelTitle("Tu selfie")
-                PostcardPhotoControls(image: selfieImage, settings: $appearance.photo)
+                PostcardPhotoControls(
+                    image: selfieImage,
+                    settings: $appearance.photo,
+                    aspectRatio: 324 / NawalPostcardCanvas.photoHeight(for: appearance.text),
+                    border: appearance.frameColor?.color ?? .mamArena,
+                    ornament: appearance.ornament,
+                    nawalImageName: draft.result.nawal.nombreImagen
+                )
                 Text("Puedes elegir otra foto conservando tu nawal y su energía.")
                     .font(.subheadline)
                 Button {

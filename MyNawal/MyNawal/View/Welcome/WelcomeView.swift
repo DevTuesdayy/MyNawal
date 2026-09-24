@@ -165,7 +165,6 @@ struct WelcomeView: View {
             showsButton = true
         }
 
-        // Let the completed composition breathe before transitioning.
         do { try await Task.sleep(for: .milliseconds(850)) } catch { return }
         guard !Task.isCancelled else { return }
         requestExit()

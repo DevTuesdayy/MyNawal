@@ -14,8 +14,8 @@ protocol PaletteStudyRepository {
 struct MockPaletteStudyRepository: PaletteStudyRepository {
     func fetchContent() -> PaletteStudyContent {
         PaletteStudyContent(
-            catalogTitle: "Catalogo de Nawales",
-            catalogSubtitle: "Explora los 20 simbolos sagrados",
+            catalogTitle: "Catálogo de Nawales",
+            catalogSubtitle: "Explora los 20 símbolos sagrados",
             catalogItems: NawalCatalogo.items,
             selectedNawal: PaletteNawalDetail(
                 title: "Tu Nawal es",

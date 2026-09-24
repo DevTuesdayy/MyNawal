@@ -6,15 +6,19 @@ struct NawalPostcardCanvas: View {
     let selfieImage: UIImage
     var appearance = PostcardAppearance()
 
+    static func photoHeight(for text: PostcardTextSettings) -> CGFloat {
+        let extraTextBlocks = (text.trimmedName.isEmpty ? 0 : 1)
+            + (text.showsEnergyAssociations ? 1 : 0)
+        return extraTextBlocks == 2 ? 188 : (extraTextBlocks == 1 ? 196 : 205)
+    }
+
     var body: some View {
         GeometryReader { proxy in
             let unit = proxy.size.width / 360
             let nawal = draft.result.nawal
             let text = appearance.text
             let fontDesign = text.typography.fontDesign
-            let extraTextBlocks = (text.trimmedName.isEmpty ? 0 : 1)
-                + (text.showsEnergyAssociations ? 1 : 0)
-            let photoHeight = extraTextBlocks == 2 ? 188.0 : (extraTextBlocks == 1 ? 196.0 : 205.0)
+            let photoHeight = Self.photoHeight(for: text)
 
             ZStack {
                 PostcardBackground(design: appearance.design, paper: appearance.background)
@@ -46,7 +50,15 @@ struct NawalPostcardCanvas: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
 
-                    selfieFrame(unit: unit, height: photoHeight, nawalImageName: nawal.nombreImagen)
+                    PostcardPhotoWithBadge(
+                        image: selfieImage,
+                        settings: appearance.photo,
+                        border: appearance.frameColor?.color ?? .mamArena,
+                        ornament: appearance.ornament,
+                        nawalImageName: nawal.nombreImagen,
+                        unit: unit
+                    )
+                    .frame(height: photoHeight * unit)
 
                     if text.showsAnimal || text.showsElement {
                         HStack(spacing: 8 * unit) {
@@ -106,24 +118,6 @@ struct NawalPostcardCanvas: View {
         .aspectRatio(4 / 5, contentMode: .fit)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityDescription)
-    }
-
-    private func selfieFrame(unit: CGFloat, height: Double, nawalImageName: String) -> some View {
-        PostcardPhotoView(image: selfieImage, settings: appearance.photo,
-                          border: appearance.frameColor?.color ?? .mamArena, unit: unit)
-            .frame(height: height * unit)
-            .overlay(alignment: .topTrailing) {
-                ImagenNawalLocal(nombre: nawalImageName)
-                    .frame(width: 68 * unit, height: 68 * unit)
-                    .padding(5 * unit)
-                    .background(Color.mamBlanco.opacity(0.94), in: RoundedRectangle(cornerRadius: 14 * unit))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 14 * unit)
-                            .strokeBorder(appearance.ornament, lineWidth: 1.5 * unit)
-                    }
-                    .shadow(color: Color.mamFondo.opacity(0.22), radius: 4 * unit, y: 2 * unit)
-                    .padding(10 * unit)
-            }
     }
 
     private var accessibilityDescription: String {

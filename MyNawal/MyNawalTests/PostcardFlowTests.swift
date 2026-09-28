@@ -38,6 +38,26 @@ final class PostcardFlowTests: XCTestCase {
         XCTAssertEqual(model.selectedTab, .postcard)
     }
 
+    func testCalculatingAnotherDateDoesNotReplaceBirthResultOrPostcardDraft() throws {
+        let model = makeModel()
+        let calendar = Calendar.current
+        let birthDate = try XCTUnwrap(calendar.date(from: DateComponents(year: 2005, month: 3, day: 13)))
+        let otherDate = try XCTUnwrap(calendar.date(from: DateComponents(year: 1954, month: 12, day: 11)))
+
+        model.calculateNawal(for: birthDate)
+        model.createPostcard()
+        let birthResult = try XCTUnwrap(model.calculationResult)
+        let savedDraft = try XCTUnwrap(model.postcardDraft)
+
+        let otherDateResult = try model.calculateNawalResult(for: otherDate)
+
+        XCTAssertEqual(otherDateResult.energia, 12)
+        XCTAssertEqual(otherDateResult.nawal.nombre, "Kan")
+        XCTAssertEqual(model.calculationResult, birthResult)
+        XCTAssertEqual(model.postcardDraft, savedDraft)
+        XCTAssertEqual(model.selectedTab, .postcard)
+    }
+
     func testCompletedPostcardCanRenderAsImage() throws {
         let nawal = try XCTUnwrap(NawalCatalogo.items.first)
         let selfie = try XCTUnwrap(UIImage(systemName: "person.crop.square"))

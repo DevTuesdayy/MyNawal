@@ -10,6 +10,8 @@ struct PalettePostcardView: View {
     @State private var isShowingSelfie = false
     @State private var selfieImage: UIImage?
     @State private var previewSelfie: UIImage?
+    @State private var postcardRevealID: UUID?
+    @State private var waitingForCameraDismissal = false
     @State private var editorSection: PostcardEditorSection = .design
     @State private var appearance = PostcardAppearance()
     @State private var renderedPostcard: RenderedPostcard?
@@ -112,16 +114,18 @@ struct PalettePostcardView: View {
         .sheet(item: $librarySession) { session in
             PostcardLibraryView(store: session.store)
         }
-        .fullScreenCover(isPresented: $isShowingSelfie) {
+        .fullScreenCover(isPresented: $isShowingSelfie, onDismiss: {
+            waitingForCameraDismissal = false
+        }) {
             if let draft {
                 NawalSelfieView(draft: draft) { image in
                     // Decode a small preview once per photo, not for each gesture update.
                     previewSelfie = image.preparingThumbnail(of: CGSize(width: 1200, height: 1200)) ?? image
                     resetLibrarySave()
                     appearance.photo = PostcardPhotoSettings()
-                    withAnimation(reduceMotion ? nil : .easeOut(duration: 0.24)) {
-                        selfieImage = image
-                    }
+                    postcardRevealID = UUID()
+                    waitingForCameraDismissal = true
+                    selfieImage = image
                     schedulePostcardPreparation(draft: draft, selfieImage: image)
                 }
             }
@@ -131,6 +135,8 @@ struct PalettePostcardView: View {
             postcardRenderTask?.cancel()
             selfieImage = nil
             previewSelfie = nil
+            postcardRevealID = nil
+            waitingForCameraDismissal = false
             editorSection = .design
             appearance = PostcardAppearance()
             renderedPostcard = nil
@@ -251,7 +257,9 @@ struct PalettePostcardView: View {
                 draft: draft,
                 selfieImage: previewSelfie ?? selfieImage,
                 selectedSection: $editorSection,
-                appearance: $appearance
+                appearance: $appearance,
+                revealID: postcardRevealID,
+                waitingForCameraDismissal: waitingForCameraDismissal
             ) {
                 isShowingSelfie = true
             }

@@ -6,7 +6,10 @@ struct PaletteStudyView: View {
     var body: some View {
         TabView(selection: $viewModel.selectedTab) {
             NavigationStack {
-                PaletteCatalogView(content: viewModel.content)
+                PaletteCatalogView(
+                    content: viewModel.content,
+                    calculateNawalResult: viewModel.calculateNawalResult(for:)
+                )
                     .toolbar(.hidden, for: .navigationBar)
             }
                 .tag(PaletteStudyTab.catalog)

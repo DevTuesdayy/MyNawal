@@ -7,8 +7,10 @@ struct CalculadorView: View {
     let onCreatePostcard: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var selectDate = Date()
     @State private var mostrarFecha = false
+    @State private var mostrarExplicacion = false
     @State private var hasCalculatedSelectedDate = false
     @State private var isCalculating = false
     @State private var revealResult = false
@@ -50,6 +52,9 @@ struct CalculadorView: View {
             .tint(Color.mamJade)
             .presentationDetents([.medium, .large])
         }
+        .sheet(isPresented: $mostrarExplicacion) {
+            CalculoNawalExplicacionView()
+        }
         .onChange(of: selectDate) { _, _ in
             hasCalculatedSelectedDate = false
             isCalculating = false
@@ -78,10 +83,20 @@ struct CalculadorView: View {
     private var contenido: some View {
         VStack(spacing: 0) {
             VStack(spacing: 12) {
-                Text("Calcula tu Nawal")
-                    .font(.system(.title, design: .rounded, weight: .bold))
-                    .foregroundStyle(Color.mamFondo)
-                    .accessibilityAddTraits(.isHeader)
+                if dynamicTypeSize.isAccessibilitySize {
+                    HStack {
+                        Spacer()
+                        botonExplicacion
+                    }
+                    tituloCalculadora
+                } else {
+                    HStack(spacing: 8) {
+                        tituloCalculadora
+                            .frame(maxWidth: .infinity)
+                            .padding(.leading, 52)
+                        botonExplicacion
+                    }
+                }
                 Text("Ingresa tu fecha de nacimiento")
                     .font(.system(.body, design: .rounded))
                     .foregroundStyle(Color.mamFondo.opacity(0.75))
@@ -191,6 +206,25 @@ struct CalculadorView: View {
         }
         .frame(maxWidth: 520)
         .nawalEntrance()
+    }
+
+    private var tituloCalculadora: some View {
+        Text("Calcula tu Nawal")
+            .font(.system(.title, design: .rounded, weight: .bold))
+            .foregroundStyle(Color.mamFondo)
+            .accessibilityAddTraits(.isHeader)
+    }
+
+    private var botonExplicacion: some View {
+        Button { mostrarExplicacion = true } label: {
+            Image(systemName: "questionmark.circle")
+                .font(.system(size: 23, weight: .medium))
+                .foregroundStyle(Color.mamJade)
+                .frame(width: 44, height: 44)
+        }
+        .buttonStyle(NawalPressStyle())
+        .accessibilityLabel("Cómo se calcula mi nawal")
+        .accessibilityHint("Abre una explicación de los ciclos y la fecha de referencia")
     }
 }
 

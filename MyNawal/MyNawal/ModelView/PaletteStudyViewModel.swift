@@ -43,21 +43,22 @@ final class PaletteStudyViewModel: ObservableObject {
         selectedTab = .postcard
     }
 
+    /// Calculates any date without replacing the user's current birth-date result or postcard draft.
+    func calculateNawalResult(for date: Date) throws -> NawalCalculationResult {
+        try nawalCalculator.calculate(for: date, nawales: content.catalogItems)
+    }
+
     func calculateNawal(for date: Date) {
         do {
-            calculationResult = try nawalCalculator.calculate(
-                for: date,
-                nawales: content.catalogItems
-            )
+            let result = try calculateNawalResult(for: date)
+            calculationResult = result
             calculationErrorMessage = nil
-            if let calculationResult {
-                calculatedDraft = NawalPostcardDraft(
-                    result: calculationResult,
-                    birthDateText: date.formatted(
-                        .dateTime.day().month(.wide).year().locale(Locale(identifier: "es_MX"))
-                    )
+            calculatedDraft = NawalPostcardDraft(
+                result: result,
+                birthDateText: date.formatted(
+                    .dateTime.day().month(.wide).year().locale(Locale(identifier: "es_MX"))
                 )
-            }
+            )
         } catch {
             calculationResult = nil
             calculatedDraft = nil

@@ -5,6 +5,7 @@ struct NawalPostcardCanvas: View {
     let draft: NawalPostcardDraft
     let selfieImage: UIImage
     var appearance = PostcardAppearance()
+    var reveal = PostcardRevealState.complete
 
     static func photoHeight(for text: PostcardTextSettings) -> CGFloat {
         let extraTextBlocks = (text.trimmedName.isEmpty ? 0 : 1)
@@ -56,7 +57,9 @@ struct NawalPostcardCanvas: View {
                         border: appearance.frameColor?.color ?? .mamArena,
                         ornament: appearance.ornament,
                         nawalImageName: nawal.nombreImagen,
-                        unit: unit
+                        unit: unit,
+                        photoReveal: reveal.photo,
+                        stampReveal: reveal.stamp
                     )
                     .frame(height: photoHeight * unit)
 
@@ -113,6 +116,18 @@ struct NawalPostcardCanvas: View {
             .clipShape(RoundedRectangle(cornerRadius: 24 * unit, style: .continuous))
             .overlay {
                 PostcardFrame(appearance: appearance, unit: unit)
+                    .opacity(reveal.frame)
+                // A transient outline, never included by the static export renderer.
+                RoundedRectangle(cornerRadius: 24 * unit)
+                    .inset(by: appearance.thickness.width * unit / 2)
+                    .trim(from: 0, to: reveal.border)
+                    .stroke(appearance.border, style: StrokeStyle(
+                        lineWidth: appearance.thickness.width * unit,
+                        lineCap: .round
+                    ))
+                    .opacity(1 - reveal.frame)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
             }
         }
         .aspectRatio(4 / 5, contentMode: .fit)

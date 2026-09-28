@@ -55,9 +55,13 @@ struct PostcardPhotoWithBadge: View {
     let ornament: Color
     let nawalImageName: String
     let unit: CGFloat
+    var photoReveal: Double = 1
+    var stampReveal: Double = 1
 
     var body: some View {
         PostcardPhotoView(image: image, settings: settings, border: border, unit: unit)
+            .opacity(photoReveal)
+            .scaleEffect(0.97 + 0.03 * photoReveal)
             .overlay(alignment: .topTrailing) {
                 ImagenNawalLocal(nombre: nawalImageName)
                     .frame(width: 68 * unit, height: 68 * unit)
@@ -68,6 +72,9 @@ struct PostcardPhotoWithBadge: View {
                             .strokeBorder(ornament, lineWidth: 1.5 * unit)
                     }
                     .shadow(color: Color.mamFondo.opacity(0.22), radius: 4 * unit, y: 2 * unit)
+                    .opacity(stampReveal)
+                    .scaleEffect(1.2 - 0.2 * stampReveal)
+                    .rotationEffect(.degrees(-8 * (1 - stampReveal)))
                     .padding(10 * unit)
                     .allowsHitTesting(false)
             }

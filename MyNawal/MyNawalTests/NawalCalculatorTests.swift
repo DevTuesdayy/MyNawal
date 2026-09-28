@@ -38,6 +38,28 @@ final class NawalCalculatorTests: XCTestCase {
         }
     }
 
+    func testExplanationExampleMatchesCalculator() throws {
+        for step in CalculoNawalExplicacionView.ejemplo {
+            let result = try calculator.calculate(
+                for: date(step.year, step.month, step.day),
+                nawales: NawalCatalogo.items
+            )
+
+            XCTAssertEqual(result.energia, step.energia, step.fecha)
+            XCTAssertEqual(result.nawal.nombre, step.nawal, step.fecha)
+        }
+    }
+
+    func testPublished2012AnchorMatchesCatalogPosition() throws {
+        let result = try calculator.calculate(
+            for: date(2012, 12, 21),
+            nawales: NawalCatalogo.items
+        )
+
+        XCTAssertEqual(result.energia, 4)
+        XCTAssertEqual(result.nawal.nombre, "Ajpu'")
+    }
+
     func testDateBeforeReferenceUsesPositiveModulo() throws {
         let result = try calculator.calculate(
             for: date(1954, 12, 9),

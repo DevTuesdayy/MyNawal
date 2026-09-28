@@ -30,6 +30,8 @@ struct PostcardEditorView: View {
     let selfieImage: UIImage
     @Binding var selectedSection: PostcardEditorSection
     @Binding var appearance: PostcardAppearance
+    var revealID: UUID? = nil
+    var waitingForCameraDismissal = false
     let onChangePhoto: () -> Void
     @State private var showingCustomization = false
     @State private var changePhotoAfterDismiss = false
@@ -54,7 +56,13 @@ struct PostcardEditorView: View {
             }
 
             // Keep the existing canvas alive when changing panels; no PNG rendering here.
-            NawalPostcardCanvas(draft: draft, selfieImage: selfieImage, appearance: appearance)
+            PostcardRevealView(
+                draft: draft,
+                selfieImage: selfieImage,
+                appearance: appearance,
+                revealID: revealID,
+                waitingForCameraDismissal: waitingForCameraDismissal
+            )
                 .frame(maxWidth: 360)
                 .shadow(color: Color.mamFondo.opacity(0.12), radius: 5, y: 3)
 

@@ -89,7 +89,12 @@ struct PostcardEditorView: View {
             NavigationStack {
                 ScrollView {
                     VStack(spacing: 20) {
-                        NawalPostcardCanvas(draft: draft, selfieImage: selfieImage, appearance: appearance)
+                        NawalPostcardCanvas(
+                            draft: draft,
+                            selfieImage: selfieImage,
+                            appearance: appearance,
+                            animatesDecoration: true
+                        )
                             .frame(maxWidth: 360)
                         customizationPanel
                     }
@@ -229,6 +234,7 @@ struct PostcardEditorView: View {
                                 .font(.system(.caption, design: .rounded, weight: .semibold))
                                 .fixedSize(horizontal: false, vertical: true)
                             Image(systemName: appearance.design == design ? "checkmark.circle.fill" : "circle")
+                                .contentTransition(.opacity)
                                 .accessibilityHidden(true)
                         }
                         .foregroundStyle(Color.mamJade)
@@ -236,6 +242,7 @@ struct PostcardEditorView: View {
                         .frame(maxWidth: .infinity)
                         .background(Color.mamArena.opacity(appearance.design == design ? 0.25 : 0.08),
                                     in: RoundedRectangle(cornerRadius: 14))
+                        .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: appearance.design)
                     }
                     .buttonStyle(NawalPressStyle())
                     .accessibilityLabel(design.title)

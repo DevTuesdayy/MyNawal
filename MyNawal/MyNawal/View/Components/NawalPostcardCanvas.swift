@@ -6,6 +6,9 @@ struct NawalPostcardCanvas: View {
     let selfieImage: UIImage
     var appearance = PostcardAppearance()
     var reveal = PostcardRevealState.complete
+    // Only the live customization preview opts in; exports remain immediate and complete.
+    var animatesDecoration = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     static func photoHeight(for text: PostcardTextSettings) -> CGFloat {
         let extraTextBlocks = (text.trimmedName.isEmpty ? 0 : 1)
@@ -22,7 +25,7 @@ struct NawalPostcardCanvas: View {
             let photoHeight = Self.photoHeight(for: text)
 
             ZStack {
-                PostcardBackground(design: appearance.design, paper: appearance.background)
+                postcardBackground
 
                 VStack(spacing: 8 * unit) {
                     if !text.trimmedName.isEmpty {
@@ -115,7 +118,7 @@ struct NawalPostcardCanvas: View {
             }
             .clipShape(RoundedRectangle(cornerRadius: 24 * unit, style: .continuous))
             .overlay {
-                PostcardFrame(appearance: appearance, unit: unit)
+                postcardFrame(unit: unit)
                     .opacity(reveal.frame)
                 // A transient outline, never included by the static export renderer.
                 RoundedRectangle(cornerRadius: 24 * unit)
@@ -133,6 +136,38 @@ struct NawalPostcardCanvas: View {
         .aspectRatio(4 / 5, contentMode: .fit)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityDescription)
+    }
+
+    private var decorationAnimation: Animation? {
+        animatesDecoration && !reduceMotion ? .easeInOut(duration: 0.24) : nil
+    }
+
+    private var postcardBackground: some View {
+        ZStack {
+            PostcardBackground(design: appearance.design, paper: appearance.background)
+                .id(appearance.design)
+                .transition(.opacity)
+                .zIndex(1)
+        }
+        .animation(decorationAnimation, value: appearance.design)
+        .animation(decorationAnimation, value: appearance.background)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    private func postcardFrame(unit: CGFloat) -> some View {
+        ZStack {
+            PostcardFrame(appearance: appearance, unit: unit)
+                .id(appearance.design)
+                .transition(.opacity)
+                .zIndex(1)
+        }
+        .animation(decorationAnimation, value: appearance.design)
+        .animation(decorationAnimation, value: appearance.thickness)
+        .animation(decorationAnimation, value: appearance.frameColor)
+        .animation(decorationAnimation, value: appearance.accentColor)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 
     private var accessibilityDescription: String {

@@ -6,7 +6,10 @@ struct PaletteStudyView: View {
     var body: some View {
         TabView(selection: $viewModel.selectedTab) {
             NavigationStack {
-                PaletteCatalogView(content: viewModel.content)
+                PaletteCatalogView(
+                    content: viewModel.content,
+                    calculateNawalResult: viewModel.calculateNawalResult(for:)
+                )
                     .toolbar(.hidden, for: .navigationBar)
             }
                 .tag(PaletteStudyTab.catalog)
@@ -15,35 +18,30 @@ struct PaletteStudyView: View {
                 }
 
             NavigationStack {
-                CalculadorView(content: viewModel.content) { nawal, numero, fecha in
-                    viewModel.updateCalculation(
-                        nawal: nawal,
-                        energyNumber: numero,
-                        birthDate: fecha
-                    )
-                }
-                    .toolbar(.hidden, for: .navigationBar)
+                CalculadorView(
+                    result: viewModel.calculationResult,
+                    errorMessage: viewModel.calculationErrorMessage,
+                    onCalculate: viewModel.calculateNawal,
+                    onCreatePostcard: viewModel.createPostcard
+                )
             }
                 .tag(PaletteStudyTab.calculator)
                 .tabItem {
                     Label(PaletteStudyTab.calculator.title, systemImage: PaletteStudyTab.calculator.systemImage)
                 }
 
-            PalettePostcardView(
-                content: viewModel.content,
-                nawal: viewModel.calculatedNawal,
-                numeroEnergia: viewModel.calculatedEnergyNumber,
-                fecha: viewModel.calculatedBirthDate
-            )
+            PalettePostcardView(draft: viewModel.postcardDraft) {
+                viewModel.selectTab(.calculator)
+            }
                 .tag(PaletteStudyTab.postcard)
                 .tabItem {
                     Label(PaletteStudyTab.postcard.title, systemImage: PaletteStudyTab.postcard.systemImage)
                 }
         }
-        .tint(Color.mamAmarillo)
-        .toolbarBackground(Color.mamFondo, for: .tabBar)
+        .tint(Color.mamJade)
+        .toolbarBackground(Color.mamBlanco, for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)
-        .toolbarColorScheme(.dark, for: .tabBar)
+        .toolbarColorScheme(.light, for: .tabBar)
     }
 }
 

@@ -7,3 +7,6 @@ xcuserdata/
 build/
 DerivedData/
 *.xcarchive
+
+# Documentación local de planificación y tareas
+/docs/

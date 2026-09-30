@@ -6,21 +6,19 @@ struct PalettePostcardAction: View {
     let background: Color
 
     var body: some View {
-        HStack(spacing: 9) {
-            Image(systemName: icon)
-                .font(.system(size: 13, weight: .black))
-                .frame(width: 28, height: 28)
-                .background(Color.white.opacity(0.12))
-                .clipShape(Circle())
-
-            Text(title)
-                .font(.system(size: 15, weight: .bold, design: .rounded))
-        }
-            .foregroundStyle(Color.mamCrema)
+        Label(title, systemImage: icon)
+            .font(.headline.weight(.semibold))
+            .foregroundStyle(Color.mamBlanco)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 13)
+            .padding(.vertical, 14)
             .background(background)
             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .shadow(color: background.opacity(0.2), radius: 8, y: 4)
+            .overlay {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(Color.mamArena, lineWidth: 1)
+            }
+            .shadow(color: Color.mamFondo.opacity(0.09), radius: 2, x: 0, y: 2)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("\(title): función pendiente de implementación")
     }
 }

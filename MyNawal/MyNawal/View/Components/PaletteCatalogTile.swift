@@ -2,52 +2,61 @@ import SwiftUI
 
 struct TarjetaCatalogoNawal: View {
     let nawal: PaletteNawalItem
+    let estaSeleccionado: Bool
     let alSeleccionar: () -> Void
+
+    @Environment(\.dynamicTypeSize) private var textSize
+
+    private let contorno = RoundedRectangle(cornerRadius: 18, style: .continuous)
 
     var body: some View {
         Button(action: alSeleccionar) {
-            VStack(spacing: 10) {
+            VStack(spacing: 12) {
                 ImagenNawalLocal(nombre: nawal.nombreImagen)
                     .aspectRatio(1, contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(Color.mamArena.opacity(0.28), lineWidth: 1)
-                    }
+                    .frame(maxWidth: textSize.isAccessibilitySize ? 180 : .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
                 Text(nawal.nombre)
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color.mamFondo)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.78)
+                    .font(.system(.callout, design: .rounded, weight: .semibold))
+                    .foregroundStyle(estaSeleccionado ? Color.mamBlanco : Color.mamFondo)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity)
-            .padding(10)
-            .background(Color.mamTarjeta)
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .stroke(Color.mamFondo.opacity(0.07), lineWidth: 1)
+            .padding(8)
+            .padding(.bottom, 8)
+            .background {
+                contorno
+                    .fill(estaSeleccionado ? Color.mamJade : Color.mamBlanco)
+                    .overlay {
+                        if !estaSeleccionado {
+                            contorno.fill(Color.white.opacity(0.38))
+                        }
+                    }
             }
-            .shadow(color: Color.mamFondo.opacity(0.08), radius: 7, y: 4)
+            .clipShape(contorno)
+            .overlay {
+                contorno.strokeBorder(
+                    estaSeleccionado ? Color.mamArena : Color.mamArena.opacity(0.65),
+                    lineWidth: 1
+                )
+            }
+            .shadow(color: Color.mamFondo.opacity(0.09), radius: 2, x: 0, y: 2)
+            .contentShape(contorno)
         }
-        .buttonStyle(NawalCardButtonStyle())
+        .buttonStyle(NawalPressStyle())
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("Nawal \(nawal.nombre)")
-    }
-}
-
-private struct NawalCardButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.96 : 1)
-            .opacity(configuration.isPressed ? 0.88 : 1)
-            .animation(.easeOut(duration: 0.16), value: configuration.isPressed)
+        .accessibilityHint("Abre la información del nawal")
+        .accessibilityAddTraits(estaSeleccionado ? .isSelected : [])
     }
 }
 
 #Preview {
     TarjetaCatalogoNawal(
-        nawal: PaletteNawalItem(nombre: "Imox", esDestacado: true, nombreImagen: "Imox"),
+        nawal: NawalCatalogo.items[0],
+        estaSeleccionado: false,
         alSeleccionar: {}
     )
     .padding()

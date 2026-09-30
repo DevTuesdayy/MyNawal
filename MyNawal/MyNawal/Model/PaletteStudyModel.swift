@@ -11,51 +11,58 @@ struct PaletteStudyContent: Hashable {
     let catalogTitle: String
     let catalogSubtitle: String
     let catalogItems: [PaletteNawalItem]
+    let selectedNawal: PaletteNawalDetail
+    let birthDateText: String
     let postcardTitle: String
     let postcardSubtitle: String
 }
 
-struct PaletteNawalItem: Identifiable, Hashable {
-    let id = UUID()
+nonisolated struct PaletteNawalItem: Codable, Identifiable, Hashable, Sendable {
+    private(set) var id = UUID()
     let nombre: String
     let esDestacado: Bool
     let nombreImagen: String
+    let informacion: NawalInformacion
+}
+
+nonisolated struct NawalInformacion: Codable, Hashable, Sendable {
     let significado: String
     let descripcion: String
     let energia: String
+    let animal: String
+    let elemento: String
+    let fuente: URL
+    var notaAnimal: String? = nil
+    var notaNombre: String? = nil
+}
 
-    init(
-        nombre: String,
-        esDestacado: Bool,
-        nombreImagen: String,
-        significado: String = "Símbolo sagrado del Cholq’ij",
-        descripcion: String = "Una energía sagrada que acompaña tu camino dentro del Cholq’ij.",
-        energia: String = "Conexión • Equilibrio • Propósito"
-    ) {
-        self.nombre = nombre
-        self.esDestacado = esDestacado
-        self.nombreImagen = nombreImagen
-        self.significado = significado
-        self.descripcion = descripcion
-        self.energia = energia
-    }
+struct PaletteNawalDetail: Hashable {
+    let title: String
+    let subtitle: String
+    let description: String
+    let dateText: String
+    let energyText: String
+    let actionTitle: String
 }
 
 enum PaletteStudyTab: CaseIterable, Identifiable {
     case catalog
-    case calculator
+    case detail
     case postcard
+    case calculator
 
     var id: Self { self }
 
     var title: String {
         switch self {
         case .catalog:
-            "Catálogo"
-        case .calculator:
-            "Mi Nawal"
+            "Catalogo"
+        case .detail:
+            "Detalle"
         case .postcard:
             "Postal"
+        case .calculator:
+            "Calcular"
         }
     }
 
@@ -63,10 +70,12 @@ enum PaletteStudyTab: CaseIterable, Identifiable {
         switch self {
         case .catalog:
             "square.grid.2x2.fill"
-        case .calculator:
-            "calendar"
+        case .detail:
+            "sparkles"
         case .postcard:
             "camera.viewfinder"
+        case .calculator:
+            "calendar"
         }
     }
 }

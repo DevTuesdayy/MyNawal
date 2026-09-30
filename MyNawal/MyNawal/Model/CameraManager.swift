@@ -29,11 +29,13 @@ final class CameraManager: NSObject, ObservableObject, nonisolated AVCapturePhot
     let session = AVCaptureSession()
 
     @Published private(set) var capturedImage: UIImage?
+    @Published private(set) var captureDevice: AVCaptureDevice?
     @Published private(set) var state: CameraState = .idle
 
     private let photoOutput = AVCapturePhotoOutput()
     private let sessionQueue = DispatchQueue(label: "com.tuesday.mynawal.camera.session")
     private var isConfigured = false
+    private var captureRotationCoordinator: AVCaptureDevice.RotationCoordinator?
 
     func prepare() {
         guard state == .idle || state == .denied || state == .restricted || isRecoverableFailure else {
@@ -88,7 +90,7 @@ final class CameraManager: NSObject, ObservableObject, nonisolated AVCapturePhot
             return
         }
 
-        let rotationAngle = Self.currentInterfaceOrientation.captureVideoRotationAngle
+        let rotationAngle = captureRotationCoordinator?.videoRotationAngleForHorizonLevelCapture
         updateState(.capturing)
 
         sessionQueue.async { [weak self] in
@@ -104,7 +106,7 @@ final class CameraManager: NSObject, ObservableObject, nonisolated AVCapturePhot
                 connection.automaticallyAdjustsVideoMirroring = false
                 connection.isVideoMirrored = true
             }
-            if connection.isVideoRotationAngleSupported(rotationAngle) {
+            if let rotationAngle, connection.isVideoRotationAngleSupported(rotationAngle) {
                 connection.videoRotationAngle = rotationAngle
             }
 
@@ -175,9 +177,16 @@ final class CameraManager: NSObject, ObservableObject, nonisolated AVCapturePhot
                 self.photoOutput.maxPhotoQualityPrioritization = .quality
                 self.session.commitConfiguration()
 
+                self.captureRotationCoordinator = AVCaptureDevice.RotationCoordinator(
+                    device: camera,
+                    previewLayer: nil
+                )
                 self.isConfigured = true
                 self.startSessionOnQueue()
-                self.updateState(.ready)
+                DispatchQueue.main.async { [weak self] in
+                    self?.captureDevice = camera
+                    self?.state = .ready
+                }
             } catch {
                 self.session.commitConfiguration()
                 self.updateState(.failed("No se pudo configurar la cámara: \(error.localizedDescription)"))
@@ -205,33 +214,9 @@ final class CameraManager: NSObject, ObservableObject, nonisolated AVCapturePhot
         return false
     }
 
-    private static var currentInterfaceOrientation: UIInterfaceOrientation {
-        UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first(where: { $0.activationState == .foregroundActive })?
-            .effectiveGeometry.interfaceOrientation ?? .portrait
-    }
-
     private func updateState(_ newState: CameraState) {
         DispatchQueue.main.async { [weak self] in
             self?.state = newState
-        }
-    }
-}
-
-extension UIInterfaceOrientation {
-    var captureVideoRotationAngle: CGFloat {
-        switch self {
-        case .portrait:
-            90
-        case .portraitUpsideDown:
-            270
-        case .landscapeLeft:
-            0
-        case .landscapeRight:
-            180
-        default:
-            90
         }
     }
 }

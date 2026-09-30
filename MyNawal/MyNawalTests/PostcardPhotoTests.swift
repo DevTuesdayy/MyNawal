@@ -51,4 +51,32 @@ final class PostcardPhotoTests: XCTestCase {
         appearance.photo = PostcardPhotoSettings()
         XCTAssertEqual(appearance, original)
     }
+
+    func testMonochromeKeepsCameraPhotoOrientationAndMirroring() throws {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let original = UIGraphicsImageRenderer(size: CGSize(width: 60, height: 90), format: format).image { context in
+            UIColor.black.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 60, height: 90))
+            UIColor.white.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 25, height: 40))
+        }
+        let cgImage = try XCTUnwrap(original.cgImage)
+
+        for orientation: UIImage.Orientation in [
+            .up, .down, .left, .right,
+            .upMirrored, .downMirrored, .leftMirrored, .rightMirrored
+        ] {
+            let input = UIImage(cgImage: cgImage, scale: 1, orientation: orientation)
+            let uprightData = try XCTUnwrap(PostcardPhotoEncoding.pngData(input))
+            let upright = try XCTUnwrap(UIImage(data: uprightData))
+
+            let filtered = PostcardPhotoFilter.monochrome(input)
+            let expected = PostcardPhotoFilter.monochrome(upright)
+
+            XCTAssertEqual(filtered.imageOrientation, .up)
+            XCTAssertEqual(filtered.size, input.size)
+            XCTAssertEqual(filtered.pngData(), expected.pngData(), "Giro o espejo incorrecto: \(orientation.rawValue)")
+        }
+    }
 }

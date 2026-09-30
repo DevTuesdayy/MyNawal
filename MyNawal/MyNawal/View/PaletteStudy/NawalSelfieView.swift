@@ -111,7 +111,7 @@ struct NawalSelfieView: View {
     private var cameraContent: some View {
         switch camera.state {
         case .ready, .capturing:
-            CameraPreview(session: camera.session)
+            CameraPreview(session: camera.session, device: camera.captureDevice)
                 .overlay {
                     if camera.state == .capturing {
                         ProgressView()
